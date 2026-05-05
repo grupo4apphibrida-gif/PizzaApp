@@ -1,65 +1,68 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import "./App.css";
-import Inicio from "./views/Inicio";
-import Login from "./views/Login";
-import Registro from "./views/Registro";
-import Productos from "./views/Productos";
-import Carrito from "./views/Carrito";
-import Pedidos from "./views/Pedidos";
-import RutaProtegida from "./rutas/RutaProtegida";
-import { CartProvider } from "./context/CartContext";
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import { CarritoProvider } from './context/CarritoContext';
+import Encabezado from './components/navegacion/Encabezado';
+import EmployeeDashboard from './views/employee/EmployeeDashboard';
 
-function App() {
+// IMPORTACIONES CORRECTAS según tu estructura
+import CatalogoCliente from './views/client/menu/CatalogoCliente';
+import CarritoView from './views/client/CarritoView';
+import MisPedidosView from './views/client/pedidos/MisPedidosView';
+import ProductosView from './views/admin/productos/ProductosView';
+import UsuariosView from './views/admin/usuarios/UsuariosView';
+import IngredientsView from './views/admin/ingredientes/IngredientesView';
+import PromocionesView from './views/admin/promociones/PromocionesView';
+import PedidosAdminView from './views/admin/pedidos/PedidosAdminView';
+import ReportesAdminView from './views/admin/reportes/ReportesAdminView';
+
+import './App.css';
+
+const HomeView = () => {
+  return <CatalogoCliente />;
+};
+
+const AppContent = () => {
   return (
-    <CartProvider>
-      <Router>
-        <Routes>
-          {/* Ruta Pública: Login */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/registro" element={<Registro />} />
+    <Router>
+      <Encabezado />
+      <Routes>
+        {/* Rutas públicas */}
+        <Route path="/" element={<HomeView />} />
+        <Route path="/login" element={<Navigate to="/" replace />} />
+        <Route path="/register" element={<Navigate to="/" replace />} />
+        <Route path="/cliente/catalogo" element={<CatalogoCliente />} />
+        <Route path="/cliente/carrito" element={<CarritoView />} />
+        <Route path="/cliente/mis-pedidos" element={<MisPedidosView />} />
 
-          {/* Rutas Protegidas: Solo accesibles si hay sesión */}
-          <Route
-            path="/"
-            element={
-              <RutaProtegida>
-                <Inicio />
-              </RutaProtegida>
-            }
-          />
-          <Route
-            path="/productos"
-            element={
-              <RutaProtegida>
-                <Productos />
-              </RutaProtegida>
-            }
-          />
-          <Route
-            path="/carrito"
-            element={
-              <RutaProtegida>
-                <Carrito />
-              </RutaProtegida>
-            }
-          />
-          <Route
-            path="/pedidos"
-            element={
-              <RutaProtegida>
-                <Pedidos />
-              </RutaProtegida>
-            }
-          />
-          
-          {/* Puedes envolver más rutas aquí igual que Inicio */}
-          
-          {/* Redirección por defecto */}
-          <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
-      </Router>
-    </CartProvider>
+        {/* ========== RUTAS DE ADMIN ========== */}
+        <Route path="/admin" element={<Navigate to="/admin/reportes" replace />} />
+        <Route path="/admin/reportes" element={<ReportesAdminView />} />
+        <Route path="/admin/productos" element={<ProductosView />} />
+        <Route path="/admin/usuarios" element={<UsuariosView />} />
+        <Route path="/admin/ingredientes" element={<IngredientsView />} />
+        <Route path="/admin/promociones" element={<PromocionesView />} />
+        <Route path="/admin/pedidos" element={<PedidosAdminView />} />
+
+        {/* ========== RUTAS DE EMPLEADO ========== */}
+        <Route path="/employee" element={<EmployeeDashboard />} />
+        <Route path="/employee/pedidos" element={<PedidosAdminView />} />
+
+        {/* Redirección por defecto */}
+        <Route path="*" element={<Navigate to="/" />} />
+      </Routes>
+    </Router>
   );
-}
+};
+
+const App = () => {
+  return (
+    <AuthProvider>
+      <CarritoProvider>
+        <AppContent />
+      </CarritoProvider>
+    </AuthProvider>
+  );
+};
 
 export default App;
