@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { getFAQ, logChatbotMessage } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../database/supabaseconfig';
 
@@ -9,21 +8,8 @@ const Chatbot = () => {
     { text: '¡Hola! Bienvenido a PizzApp. ¿En qué puedo ayudarte?', sender: 'bot' }
   ]);
   const [input, setInput] = useState('');
-  const [faqs, setFaqs] = useState([]);
   const { user } = useAuth();
   const messagesEndRef = useRef(null);
-
-  useEffect(() => {
-    const fetchFaqs = async () => {
-      try {
-        const data = await getFAQ();
-        setFaqs(data);
-      } catch (err) {
-        console.error('Error fetching FAQs:', err);
-      }
-    };
-    fetchFaqs();
-  }, []);
 
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -39,48 +25,41 @@ const Chatbot = () => {
     setMessages([...messages, { text: userMessage, sender: 'user' }]);
     setInput('');
 
-    // Chatbot logic
+    // Chatbot logic simple
     let botResponse = "Lo siento, no entiendo tu pregunta. Puedes preguntar por nuestro horario, ubicación, precios o estado de tu pedido.";
 
-    // Check for FAQ matches (simple string matching)
-    const matchedFaq = faqs.find(faq => 
-      userMessage.toLowerCase().includes(faq.question.toLowerCase()) || 
-      faq.question.toLowerCase().includes(userMessage.toLowerCase())
-    );
-
-    if (matchedFaq) {
-      botResponse = matchedFaq.answer;
+    if (userMessage.toLowerCase().includes('horario')) {
+      botResponse = "Nuestro horario es de lunes a domingo de 11:00 AM a 10:00 PM.";
+    } else if (userMessage.toLowerCase().includes('ubicación') || userMessage.toLowerCase().includes('ubicacion')) {
+      botResponse = "Estamos ubicados en Juigalpa, cerca del parque central.";
+    } else if (userMessage.toLowerCase().includes('precio') || userMessage.toLowerCase().includes('precios')) {
+      botResponse = "Nuestros precios varían según el producto. Puedes revisar el menú para ver los precios detallados.";
     } else if (userMessage.toLowerCase().includes('estado') || userMessage.toLowerCase().includes('pedido')) {
       if (!user) {
         botResponse = "Por favor inicia sesión para consultar el estado de tu pedido.";
       } else {
-        // Fetch last order status
-        const { data: order } = await supabase
-          .from('orders')
-          .select('status')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .single();
-        
-        if (order) {
-          botResponse = `Tu último pedido se encuentra en estado: ${order.status.replace('_', ' ')}.`;
-        } else {
-          botResponse = "No hemos encontrado pedidos recientes a tu nombre.";
+        try {
+          // Fetch last order status
+          const { data: order } = await supabase
+            .from('pedidos')
+            .select('estado')
+            .eq('usuario_id', user.id)
+            .order('creado_en', { ascending: false })
+            .limit(1)
+            .single();
+          
+          if (order) {
+            botResponse = `Tu último pedido se encuentra en estado: ${order.estado}.`;
+          } else {
+            botResponse = "No hemos encontrado pedidos recientes a tu nombre.";
+          }
+        } catch (err) {
+          botResponse = "Ocurrió un error al consultar tu pedido. Inténtalo más tarde.";
         }
       }
     }
 
     setMessages(prev => [...prev, { text: botResponse, sender: 'bot' }]);
-
-    // Log the message
-    if (user) {
-      logChatbotMessage({
-        user_id: user.id,
-        question: userMessage,
-        answer: botResponse
-      });
-    }
   };
 
   return (

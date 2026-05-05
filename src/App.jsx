@@ -3,9 +3,9 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './context/AuthContext';
 import LoginPage from './views/LoginPage';
 import RegisterPage from './views/RegisterPage';
-import ClientDashboard from './views/ClientDashboard';
-import EmployeeDashboard from './views/EmployeeDashboard';
-import AdminDashboard from './views/AdminDashboard';
+import ClientDashboard from './views/client/ClientDashboard';
+import EmployeeDashboard from './views/employee/EmployeeDashboard';
+import AdminDashboard from './views/admin/AdminDashboard';
 import ProtectedRoute from './components/rutas/ProtectedRoute';
 import './App.css';
 
@@ -32,7 +32,8 @@ const AppContent = () => {
         <Route path="/" element={<ClientDashboard />} />
 
         {/* MODO PRUEBA: Sin protección de rutas */}
-        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin" element={<Navigate to="/admin/reportes" replace />} />
+        <Route path="/admin/*" element={<AdminDashboard />} />
         <Route path="/employee" element={<EmployeeDashboard />} />
 
 
