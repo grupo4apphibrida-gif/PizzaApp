@@ -1,30 +1,83 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Plus, Edit, Trash2 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { getProducts, createProduct, updateProduct, deleteProduct } from '../../../services/api';
 
-const ProductosView = ({ products, onEditProduct, onDeleteProduct, onAddProduct }) => {
+const convertFileToBase64 = (file) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+
+const ProductosView = () => {
+  const [products, setProducts] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [currentProduct, setCurrentProduct] = useState({ 
     nombre: '', descripcion: '', precio: '', categoria: 'pizzas', imagen_url: '', disponible: true 
   });
   const [editingId, setEditingId] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [imagenFile, setImagenFile] = useState(null);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (editingId) {
-      onEditProduct(editingId, currentProduct);
-    } else {
-      onAddProduct(currentProduct);
+  useEffect(() => {
+    cargarProductos();
+  }, []);
+
+  const cargarProductos = async () => {
+    try {
+      setLoading(true);
+      const productos = await getProducts();
+      setProducts(productos || []);
+    } catch (error) {
+      console.error('Error cargando productos:', error);
+    } finally {
+      setLoading(false);
     }
-    setShowModal(false);
-    setEditingId(null);
-    setCurrentProduct({ nombre: '', descripcion: '', precio: '', categoria: 'pizzas', imagen_url: '', disponible: true });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      if (editingId) {
+        await updateProduct(editingId, currentProduct);
+      } else {
+        await createProduct(currentProduct);
+      }
+      await cargarProductos();
+      setShowModal(false);
+      setEditingId(null);
+      setCurrentProduct({ nombre: '', descripcion: '', precio: '', categoria: 'pizzas', imagen_url: '', disponible: true });
+      setImagenFile(null);
+    } catch (error) {
+      console.error('Error guardando producto:', error);
+    }
+  };
+
+  const handleImageChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const base64 = await convertFileToBase64(file);
+    setImagenFile(file);
+    setCurrentProduct((prev) => ({ ...prev, imagen_url: base64 }));
   };
 
   const handleEdit = (product) => {
     setCurrentProduct(product);
+    setImagenFile(null);
     setEditingId(product.id);
     setShowModal(true);
+  };
+
+  const handleDelete = async (productId) => {
+    if (!window.confirm('¿Eliminar este producto?')) return;
+    try {
+      await deleteProduct(productId);
+      await cargarProductos();
+    } catch (error) {
+      console.error('Error eliminando producto:', error);
+    }
   };
 
   return (
@@ -63,7 +116,17 @@ const ProductosView = ({ products, onEditProduct, onDeleteProduct, onAddProduct 
                 </tr>
               </thead>
               <tbody>
-                {products.map(product => (
+                {loading ? (
+                  <tr>
+                    <td colSpan="5" className="text-center py-4">
+                      <div className="spinner-border text-pizza-red" role="status"></div>
+                    </td>
+                  </tr>
+                ) : products.length === 0 ? (
+                  <tr>
+                    <td colSpan="5" className="text-center py-4 text-muted">No hay productos registrados aún.</td>
+                  </tr>
+                ) : products.map(product => (
                   <tr key={product.id}>
                     <td className="py-4 px-4 fw-bold">
                       <div className="d-flex align-items-center gap-3">
@@ -82,7 +145,7 @@ const ProductosView = ({ products, onEditProduct, onDeleteProduct, onAddProduct 
                     </td>
                     <td className="py-4 px-4 text-end">
                       <button className="btn btn-link text-primary p-0 me-3" onClick={() => handleEdit(product)}><Edit size={18} /></button>
-                      <button className="btn btn-link text-danger p-0" onClick={() => onDeleteProduct(product.id)}><Trash2 size={18} /></button>
+                      <button className="btn btn-link text-danger p-0" onClick={() => handleDelete(product.id)}><Trash2 size={18} /></button>
                     </td>
                   </tr>
                 ))}
@@ -146,13 +209,25 @@ const ProductosView = ({ products, onEditProduct, onDeleteProduct, onAddProduct 
                     </div>
                   </div>
                   <div className="mb-3">
-                    <label className="form-label x-small fw-bold text-uppercase text-muted">URL Imagen</label>
-                    <input 
-                      type="text" className="form-control rounded-3" 
-                      value={currentProduct.imagen_url} 
-                      onChange={e => setCurrentProduct({...currentProduct, imagen_url: e.target.value})} 
+                    <label className="form-label x-small fw-bold text-uppercase text-muted">Seleccionar imagen</label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="form-control rounded-3"
+                      onChange={handleImageChange}
                     />
                   </div>
+                  {currentProduct.imagen_url && (
+                    <div className="mb-3">
+                      <label className="form-label x-small fw-bold text-uppercase text-muted">Previsualización</label>
+                      <img
+                        src={currentProduct.imagen_url}
+                        alt="Previsualización"
+                        className="img-fluid rounded-3"
+                        style={{ maxHeight: '220px', objectFit: 'cover', width: '100%' }}
+                      />
+                    </div>
+                  )}
                   <div className="form-check form-switch mb-3">
                     <input 
                       className="form-check-input" type="checkbox" 

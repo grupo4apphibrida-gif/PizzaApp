@@ -44,6 +44,12 @@ export const getUsers = async () => {
   return data;
 };
 
+export const createUser = async (user) => {
+  const { data, error } = await supabase.from('usuarios').insert([user]).select();
+  if (error) throw error;
+  return data[0];
+};
+
 // Pedidos
 export const getOrders = async () => {
   const { data, error } = await supabase

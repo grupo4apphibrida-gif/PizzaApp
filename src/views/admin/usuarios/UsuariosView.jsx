@@ -1,8 +1,56 @@
-import React from 'react';
-import { Users } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Users, Plus } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { getUsers, createUser } from '../../../services/api';
+import ModalRegistroUsuario from '../../../components/usuarios/ModalRegistroUsuario';
 
-const UsuariosView = ({ users }) => {
+const UsuariosView = () => {
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [mostrarModal, setMostrarModal] = useState(false);
+  const [nuevoUsuario, setNuevoUsuario] = useState({
+    nombre: '',
+    correo: '',
+    password: '',
+    rol: 'empleado',
+    activo: true,
+  });
+
+  useEffect(() => {
+    cargarUsuarios();
+  }, []);
+
+  const cargarUsuarios = async () => {
+    try {
+      setLoading(true);
+      const usuarios = await getUsers();
+      setUsers(usuarios || []);
+    } catch (error) {
+      console.error('Error cargando usuarios:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const manejoCambioInput = (event) => {
+    const { name, value } = event.target;
+    setNuevoUsuario((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const agregarUsuario = async () => {
+    try {
+      await createUser(nuevoUsuario);
+      setMostrarModal(false);
+      setNuevoUsuario({ nombre: '', correo: '', password: '', rol: 'empleado', activo: true });
+      await cargarUsuarios();
+    } catch (error) {
+      console.error('Error creando usuario:', error);
+    }
+  };
+
   return (
     <motion.div 
       key="usuarios"
@@ -13,7 +61,15 @@ const UsuariosView = ({ users }) => {
     >
       <div className="col-12">
         <div className="bg-white p-4 rounded-4 shadow-sm">
-          <h3 className="fw-black mb-4 text-dark fs-4">Gestión de Usuarios</h3>
+          <div className="d-flex justify-content-between align-items-center mb-4">
+            <h3 className="fw-black mb-0 text-dark fs-4">Gestión de Usuarios</h3>
+            <button
+              className="btn btn-pizza-primary rounded-pill px-4 py-2 fw-bold text-uppercase x-small shadow-sm d-flex align-items-center gap-2"
+              onClick={() => setMostrarModal(true)}
+            >
+              <Plus size={18} /> Agregar Usuario
+            </button>
+          </div>
           <div className="table-responsive">
             <table className="table table-hover align-middle">
               <thead className="bg-light text-muted x-small text-uppercase fw-bold tracking-widest border-0">
@@ -25,7 +81,17 @@ const UsuariosView = ({ users }) => {
                 </tr>
               </thead>
               <tbody>
-                {users.map(user => (
+                {loading ? (
+                  <tr>
+                    <td colSpan="4" className="text-center py-4">
+                      <div className="spinner-border text-pizza-red" role="status"></div>
+                    </td>
+                  </tr>
+                ) : users.length === 0 ? (
+                  <tr>
+                    <td colSpan="4" className="text-center py-4 text-muted">No hay usuarios registrados aún.</td>
+                  </tr>
+                ) : users.map(user => (
                   <tr key={user.id}>
                     <td className="py-4 px-4 fw-bold">{user.nombre}</td>
                     <td className="py-4 px-4 text-muted">{user.correo}</td>
@@ -34,7 +100,7 @@ const UsuariosView = ({ users }) => {
                         {user.rol}
                       </span>
                     </td>
-                    <td className="py-4 px-4 text-end text-muted small">{new Date(user.creado_en).toLocaleDateString()}</td>
+                    <td className="py-4 px-4 text-end text-muted small">{user.creado_en ? new Date(user.creado_en).toLocaleDateString() : '---'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -42,6 +108,13 @@ const UsuariosView = ({ users }) => {
           </div>
         </div>
       </div>
+      <ModalRegistroUsuario
+        mostrarModal={mostrarModal}
+        setMostrarModal={setMostrarModal}
+        nuevoUsuario={nuevoUsuario}
+        manejoCambioInput={manejoCambioInput}
+        agregarUsuario={agregarUsuario}
+      />
     </motion.div>
   );
 };

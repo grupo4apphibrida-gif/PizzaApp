@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Link } from 'react-router-dom';
-import { Pizza, LayoutDashboard, ChefHat, LogOut, User, ShoppingCart, ClipboardList, Box, Users, Tag, BarChart3 } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { Pizza, ChefHat, LogOut, User, ShoppingCart, ClipboardList, Box, Users, Tag, BarChart3 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const Encabezado = () => {
   const { profile, signOut } = useAuth();
+  const location = useLocation();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const menuItems = [
     { label: 'Menú', path: '/', icon: <Pizza size={18} /> },
@@ -32,24 +34,32 @@ const Encabezado = () => {
         <button
           className="navbar-toggler border-0 shadow-none"
           type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarNav"
+          onClick={() => setMenuOpen(!menuOpen)}
           aria-controls="navbarNav"
-          aria-expanded="false"
+          aria-expanded={menuOpen}
           aria-label="Toggle navigation"
         >
-          <span className="navbar-toggler-icon"></span>
+          <span className="navbar-toggler-icon"><span></span></span>
         </button>
 
-        <div className="collapse navbar-collapse" id="navbarNav">
+        <div className={`collapse navbar-collapse ${menuOpen ? 'show' : ''}`} id="navbarNav">
           <ul className="navbar-nav me-auto mb-2 mb-lg-0 fw-bold text-dark">
-            {menuItems.map((item) => (
-              <li key={item.path} className="nav-item px-2">
-                <Link className="nav-link d-flex align-items-center gap-2" to={item.path}>
-                  {item.icon} {item.label}
-                </Link>
-              </li>
-            ))}
+            {menuItems.map((item) => {
+              const isActive = item.path === '/admin/reportes'
+                ? location.pathname.startsWith('/admin')
+                : location.pathname === item.path;
+              return (
+                <li key={item.path} className="nav-item px-2">
+                  <Link
+                    className={`nav-link d-flex align-items-center gap-2 ${isActive ? 'active' : ''}`}
+                    to={item.path}
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    {item.icon} {item.label}
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
 
           <div className="d-flex align-items-center gap-3">
@@ -57,7 +67,9 @@ const Encabezado = () => {
               <>
                 <div className="text-end d-none d-md-block">
                   <p className="mb-0 fw-black small text-dark">{profile.name}</p>
-                  <span className="badge bg-pizza-gradient text-white rounded-pill px-3 py-1 text-uppercase x-small">{profile.role}</span>
+                  <span className="badge bg-pizza-gradient text-white rounded-pill px-3 py-1 text-uppercase x-small">
+                    {profile.role}
+                  </span>
                 </div>
                 <button
                   className="btn btn-light rounded-circle p-2 shadow-sm text-danger"
