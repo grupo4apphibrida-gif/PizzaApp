@@ -9,6 +9,8 @@ import EmployeeDashboard from './views/employee/EmployeeDashboard';
 import CatalogoCliente from './views/client/menu/CatalogoCliente';
 import CarritoView from './views/client/CarritoView';
 import MisPedidosView from './views/client/pedidos/MisPedidosView';
+import LoginPage from './views/LoginPage';
+import RegisterPage from './views/RegisterPage';
 import ProductosView from './views/admin/productos/ProductosView';
 import UsuariosView from './views/admin/usuarios/UsuariosView';
 import IngredientsView from './views/admin/ingredientes/IngredientesView';
@@ -29,8 +31,9 @@ const AppContent = () => {
       <Routes>
         {/* Rutas públicas */}
         <Route path="/" element={<HomeView />} />
-        <Route path="/login" element={<Navigate to="/" replace />} />
-        <Route path="/register" element={<Navigate to="/" replace />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/cliente" element={<Navigate to="/cliente/catalogo" replace />} />
         <Route path="/cliente/catalogo" element={<CatalogoCliente />} />
         <Route path="/cliente/carrito" element={<CarritoView />} />
         <Route path="/cliente/mis-pedidos" element={<MisPedidosView />} />
