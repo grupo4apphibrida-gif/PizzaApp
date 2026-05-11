@@ -6,7 +6,7 @@ import { supabase } from '../../database/supabaseconfig';
 import Encabezado from '../../components/navegacion/Encabezado';
 import Chatbot from '../../components/Chatbot';
 import MenuView from './menu/MenuView';
-import MisPedidosView from './pedidos/MisPedidosView';
+import PedidosView from './pedidos/PedidosView';
 import { Pizza, Clock, CheckCircle2, Info, Truck } from 'lucide-react';
 
 const ClientDashboard = () => {
@@ -210,7 +210,7 @@ const ClientDashboard = () => {
             onOpenProductModal={openProductModal}
           />
           
-          <MisPedidosView 
+          <PedidosView 
             cart={cart}
             orders={orders}
             total={total}
