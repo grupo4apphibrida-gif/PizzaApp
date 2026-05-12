@@ -55,8 +55,8 @@ const ModalTamanoPizza = ({
   return (
     <Modal show={mostrar} onHide={onHide} centered size="lg">
       <Modal.Header closeButton className="border-0 bg-light">
-        <Modal.Title className="fw-bold text-danger">
-          🍕 Elige el tamaño de tu {producto?.nombre}
+        <Modal.Title className="fw-bold text-dark">
+           Elige el tamaño de tu {producto?.nombre}
         </Modal.Title>
       </Modal.Header>
 
@@ -75,7 +75,7 @@ const ModalTamanoPizza = ({
                 <Card
                   className={`cursor-pointer border-2 transition-all ${
                     tamanioSeleccionado === tamano.id
-                      ? "border-danger shadow-lg bg-danger-light"
+                      ? "border-black shadow-lg bg-dark-light"
                       : "border-light"
                   }`}
                   onClick={() => setTamanioSeleccionado(tamano.id)}
@@ -83,13 +83,13 @@ const ModalTamanoPizza = ({
                     cursor: "pointer",
                     backgroundColor:
                       tamanioSeleccionado === tamano.id
-                        ? "#ffe6e6"
+                        ? "#dedcdcff"
                         : "white",
                   }}
                 >
                   <Card.Body className="text-center">
                     <div className="fs-3 mb-2">{tamano.icono}</div>
-                    <h5 className="fw-bold text-danger">{tamano.nombre}</h5>
+                    <h5 className="fw-bold text-dark">{tamano.nombre}</h5>
                     <p className="text-muted small mb-2">{tamano.piezas}</p>
                     <p className="text-muted small mb-3">{tamano.descripcion}</p>
 
@@ -104,7 +104,7 @@ const ModalTamanoPizza = ({
                           )}
                         </div>
                       )}
-                      <div className="fw-bold text-danger fs-6">
+                      <div className="fw-bold text-dark fs-6">
                         C$ {(precioBase * tamano.multiplicador).toFixed(2)}
                       </div>
                     </div>
@@ -131,16 +131,16 @@ const ModalTamanoPizza = ({
         </Row>
 
         {/* Resumen */}
-        <div className="mt-4 p-3 bg-light rounded-3 border border-danger">
+        <div className="mt-4 p-3 bg-light rounded-3 border border-grey">
           <Row className="align-items-center">
             <Col>
-              <div className="fw-bold text-danger">
+              <div className="fw-bold text-dark">
                 {tamanioActual.nombre} ({tamanioActual.piezas})
               </div>
               <small className="text-muted">{tamanioActual.descripcion}</small>
             </Col>
             <Col className="text-end">
-              <div className="fs-4 fw-bold text-danger">
+              <div className="fs-4 fw-bold text-dark">
                 C$ {precioFinal}
               </div>
               {tamanioActual.multiplicador > 1 && (
@@ -158,7 +158,7 @@ const ModalTamanoPizza = ({
           Cancelar
         </Button>
         <Button
-          variant="danger"
+          variant="success"
           onClick={handleAgregar}
           className="fw-bold px-4"
         >

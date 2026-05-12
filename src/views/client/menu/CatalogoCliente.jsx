@@ -107,7 +107,7 @@ const CatalogoCliente = () => {
   return (
     <Container className="py-4">
       <div className="text-center mb-5 py-4 px-3 rounded-4 shadow-sm" style={{ background: 'linear-gradient(135deg, rgba(255,245,245,0.9), rgba(255,255,255,0.8))' }}>
-        <h1 className="display-5 fw-bold text-danger">🍕 Nuestro Menú</h1>
+        <h1 className="display-5 fw-bold text-dark">Nuestro Menú</h1>
         <p className="lead text-muted mb-3">Las mejores pizzas de Juigalpa, hechas con amor</p>
         <div className="d-flex justify-content-center gap-2 flex-wrap">
           <Badge bg="danger" pill>Fresco</Badge>
@@ -176,7 +176,7 @@ const CatalogoCliente = () => {
 
       <Row>
         <Col xs={12} className="text-center mb-4">
-          <h3 className="fw-bold">🔥 Nuestras Especialidades</h3>
+          <h3 className="fw-bold">Nuestras Especialidades</h3>
           <p className="text-muted">Elige tu favorito y personalízalo al tamaño que quieras</p>
         </Col>
         {productosFiltrados.map((producto) => {
@@ -184,7 +184,22 @@ const CatalogoCliente = () => {
 
           return (
             <Col key={producto.id} xs={12} sm={6} md={4} lg={3} className="mb-4">
-              <Card className="h-100 shadow producto-card border-0" style={{ borderRadius: '24px' }}>
+              <Card
+                className="h-100 shadow producto-card border-0"
+                style={{ borderRadius: '24px', cursor: 'pointer' }}
+                role="button"
+                tabIndex={0}
+                onClick={() => {
+                  setProductoSeleccionado({
+                    id: producto.id,
+                    nombre: producto.nombre,
+                    descripcion: producto.descripcion,
+                    imagen: producto.imagen_url,
+                    precioBase: parseFloat(precioFinal),
+                  });
+                  setMostrarModalTamano(true);
+                }}
+              >
                 <div className="position-relative overflow-hidden rounded-top" style={{ minHeight: '220px' }}>
                   {producto.imagen_url ? (
                     <Card.Img
@@ -205,7 +220,7 @@ const CatalogoCliente = () => {
                     style={{ background: 'linear-gradient(0deg, rgba(0,0,0,0.45), transparent)' }}
                   />
                   <Badge
-                    bg="danger"
+                    bg="dark"
                     className="position-absolute top-0 start-0 m-3"
                     style={{ fontSize: "0.8rem" }}
                   >
@@ -213,7 +228,7 @@ const CatalogoCliente = () => {
                   </Badge>
                 </div>
 
-                <Card.Body>
+                <Card.Body >
                   <Card.Title className="fw-bold mb-2">{producto.nombre}</Card.Title>
                   <Card.Text className="text-muted small mb-3">
                     {producto.descripcion?.substring(0, 80) || 'Deliciosa pizza disponible ahora.'}
@@ -223,13 +238,12 @@ const CatalogoCliente = () => {
                     <div>
                       {tienePromocion ? (
                         <>
-                          <div className="text-muted small text-decoration-line-through">
+                          <div className="text-muted small text-decoration-line-end">
                             C$ {precioOriginal}
                           </div>
-                          <div className="text-danger fw-bold fs-5">C$ {precioFinal}</div>
                         </>
                       ) : (
-                        <div className="text-danger fw-bold fs-5">C$ {precioFinal}</div>
+                        <div className="text-black fw-bold  fs-7">C$ {precioFinal}</div>
                       )}
                     </div>
                     {tienePromocion && (
@@ -239,24 +253,7 @@ const CatalogoCliente = () => {
                     )}
                   </div>
 
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    className="w-100 rounded-pill"
-                    onClick={() => {
-                      setProductoSeleccionado({
-                        id: producto.id,
-                        nombre: producto.nombre,
-                        descripcion: producto.descripcion,
-                        imagen: producto.imagen_url,
-                        precioBase: parseFloat(precioFinal),
-                      });
-                      setMostrarModalTamano(true);
-                    }}
-                  >
-                    <i className="bi bi-cart-plus me-2"></i> Agregar
-                  </Button>
-                </Card.Body>
+</Card.Body>
               </Card>
             </Col>
           );
@@ -271,7 +268,7 @@ const CatalogoCliente = () => {
           }
           .producto-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+            box-shadow: 0 10px 20px rgba(254, 0, 0, 0.15);
           }
         `}
       </style>
