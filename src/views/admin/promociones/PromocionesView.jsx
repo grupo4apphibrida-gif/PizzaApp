@@ -32,6 +32,7 @@ const PromocionesView = () => {
     activa: true,
     fecha_inicio: "",
     fecha_fin: "",
+    imagen_url: "",
   });
 
   const [promocionEditar, setPromocionEditar] = useState({
@@ -42,6 +43,7 @@ const PromocionesView = () => {
     activa: true,
     fecha_inicio: "",
     fecha_fin: "",
+    imagen_url: "",
   });
 
   const [promocionEliminar, setPromocionEliminar] = useState(null);
@@ -107,6 +109,21 @@ const PromocionesView = () => {
     }));
   };
 
+  const handleImagenPromocion = async ({ target }, editar = false) => {
+    const file = target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const imagenBase64 = reader.result;
+      if (editar) {
+        setPromocionEditar((prev) => ({ ...prev, imagen_url: imagenBase64 }));
+      } else {
+        setNuevaPromocion((prev) => ({ ...prev, imagen_url: imagenBase64 }));
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   const abrirModalEdicion = (promocion) => {
     setPromocionEditar({
       id: promocion.id,
@@ -116,6 +133,7 @@ const PromocionesView = () => {
       activa: promocion.activa !== false,
       fecha_inicio: promocion.fecha_inicio || "",
       fecha_fin: promocion.fecha_fin || "",
+      imagen_url: promocion.imagen_url || "",
     });
     setMostrarModalEdicion(true);
   };
@@ -137,12 +155,13 @@ const PromocionesView = () => {
         activa: nuevaPromocion.activa,
         fecha_inicio: nuevaPromocion.fecha_inicio || null,
         fecha_fin: nuevaPromocion.fecha_fin || null,
+        imagen_url: nuevaPromocion.imagen_url || null,
       }]);
 
       if (error) throw error;
 
       setMostrarModal(false);
-      setNuevaPromocion({ titulo: "", descripcion: "", descuento: "", activa: true, fecha_inicio: "", fecha_fin: "" });
+      setNuevaPromocion({ titulo: "", descripcion: "", descuento: "", activa: true, fecha_inicio: "", fecha_fin: "", imagen_url: "" });
       setToast({ mostrar: true, mensaje: "Promoción creada", tipo: "exito" });
       await cargarPromociones();
     } catch (err) {
@@ -163,6 +182,7 @@ const PromocionesView = () => {
           activa: promocionEditar.activa,
           fecha_inicio: promocionEditar.fecha_inicio || null,
           fecha_fin: promocionEditar.fecha_fin || null,
+          imagen_url: promocionEditar.imagen_url || null,
         })
         .eq("id", promocionEditar.id);
 
@@ -266,6 +286,7 @@ const PromocionesView = () => {
         setMostrarModal={setMostrarModal}
         nuevaPromocion={nuevaPromocion}
         manejoCambioInput={manejoCambioInput}
+        manejoCambioImagen={(e) => handleImagenPromocion(e, false)}
         agregarPromocion={agregarPromocion}
       />
 
@@ -274,6 +295,7 @@ const PromocionesView = () => {
         setMostrarModalEdicion={setMostrarModalEdicion}
         promocionEditar={promocionEditar}
         manejoCambioInputEdicion={manejoCambioInputEdicion}
+        manejoCambioImagen={(e) => handleImagenPromocion(e, true)}
         actualizarPromocion={actualizarPromocion}
       />
 

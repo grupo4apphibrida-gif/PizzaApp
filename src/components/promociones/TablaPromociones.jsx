@@ -32,6 +32,7 @@ const TablaPromociones = ({
     <Table striped hover responsive className="mb-0">
       <thead className="table-light">
         <tr>
+          <th>Imagen</th>
           <th>Título</th>
           <th>Descripción</th>
           <th>Descuento</th>
@@ -45,6 +46,14 @@ const TablaPromociones = ({
           const activa = isActiva(prom);
           return (
             <tr key={prom.id}>
+              <td>
+                <img
+                  src={prom.imagen_url || 'https://via.placeholder.com/64?text=Promo'}
+                  alt={prom.titulo}
+                  style={{ width: 64, height: 64, objectFit: 'cover' }}
+                  className="rounded-3"
+                />
+              </td>
               <td className="fw-semibold">{prom.titulo}</td>
               <td className="text-muted small">{prom.descripcion || "Sin descripción"}</td>
               <td className="fw-bold text-success">{prom.descuento}%</td>

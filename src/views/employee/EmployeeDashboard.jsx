@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getOrders, updateOrderStatus, getProducts, createOrder } from '../../services/api';
 import { supabase } from '../../database/supabaseconfig';
-import Encabezado from '../../components/navegacion/Encabezado';
 import PedidosActivosView from './pedidos/PedidosActivosView';
 import HistorialView from './historial/HistorialView';
 import { 
@@ -161,7 +160,6 @@ const EmployeeDashboard = () => {
 
   return (
     <div className="bg-light min-vh-100 pb-5">
-      <Encabezado />
       <div className="container-fluid px-4 px-md-5">
         {/* Encabezado del dashboard */}
         <div className="row g-4 mb-4">

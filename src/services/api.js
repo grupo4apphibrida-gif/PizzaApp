@@ -2,9 +2,18 @@ import { supabase } from '../database/supabaseconfig';
 
 // Productos
 export const getProducts = async () => {
-  const { data, error } = await supabase.from('productos').select('*').order('nombre');
-  if (error) throw error;
-  return data;
+  try {
+    const { data, error } = await supabase.from('productos').select('*').order('nombre');
+    if (error) {
+      console.error('Error getProducts:', error);
+      throw error;
+    }
+    console.log('Productos cargados:', data?.length || 0);
+    return data || [];
+  } catch (err) {
+    console.error('Exception en getProducts:', err);
+    throw err;
+  }
 };
 
 export const createProduct = async (product) => {
@@ -26,9 +35,18 @@ export const deleteProduct = async (id) => {
 
 // Inventario (Ingredientes)
 export const getInventory = async () => {
-  const { data, error } = await supabase.from('ingredientes').select('*').order('id');
-  if (error) throw error;
-  return data;
+  try {
+    const { data, error } = await supabase.from('ingredientes').select('*').order('id');
+    if (error) {
+      console.error('Error getInventory:', error);
+      throw error;
+    }
+    console.log('Ingredientes cargados:', data?.length || 0);
+    return data || [];
+  } catch (err) {
+    console.error('Exception en getInventory:', err);
+    throw err;
+  }
 };
 
 export const updateInventoryStock = async (id, stock) => {
@@ -39,25 +57,52 @@ export const updateInventoryStock = async (id, stock) => {
 
 // Usuarios
 export const getUsers = async () => {
-  const { data, error } = await supabase.from('usuarios').select('*').order('nombre');
-  if (error) throw error;
-  return data;
+  try {
+    const { data, error } = await supabase.from('usuarios').select('*').order('nombre');
+    if (error) {
+      console.error('Error getUsers:', error);
+      throw error;
+    }
+    console.log('Usuarios cargados:', data?.length || 0);
+    return data || [];
+  } catch (err) {
+    console.error('Exception en getUsers:', err);
+    throw err;
+  }
 };
 
 export const createUser = async (user) => {
-  const { data, error } = await supabase.from('usuarios').insert([user]).select();
-  if (error) throw error;
-  return data[0];
+  try {
+    const { data, error } = await supabase.from('usuarios').insert([user]).select();
+    if (error) {
+      console.error('Error createUser:', error);
+      throw error;
+    }
+    console.log('Usuario creado:', data[0]);
+    return data[0];
+  } catch (err) {
+    console.error('Exception en createUser:', err);
+    throw err;
+  }
 };
 
 // Pedidos
 export const getOrders = async () => {
-  const { data, error } = await supabase
-    .from('pedidos')
-    .select('*, usuarios(nombre), detalle_pedido(*, productos(nombre))')
-    .order('creado_en', { ascending: false });
-  if (error) throw error;
-  return data;
+  try {
+    const { data, error } = await supabase
+      .from('pedidos')
+      .select('*, usuarios(nombre), detalle_pedido(*, productos(nombre))')
+      .order('creado_en', { ascending: false });
+    if (error) {
+      console.error('Error getOrders:', error);
+      throw error;
+    }
+    console.log('Pedidos cargados:', data?.length || 0);
+    return data || [];
+  } catch (err) {
+    console.error('Exception en getOrders:', err);
+    throw err;
+  }
 };
 
 export const createOrder = async (order, items) => {

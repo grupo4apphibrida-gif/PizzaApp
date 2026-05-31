@@ -6,6 +6,7 @@ const ModalRegistroPromocion = ({
   setMostrarModal,
   nuevaPromocion,
   manejoCambioInput,
+  manejoCambioImagen,
   agregarPromocion,
 }) => {
   const [deshabilitado, setDeshabilitado] = useState(false);
@@ -100,6 +101,32 @@ const ModalRegistroPromocion = ({
                   onChange={manejoCambioInput}
                 />
               </Form.Group>
+            </Col>
+
+            <Col xs={12} md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>Imagen</Form.Label>
+                <Form.Control
+                  type="file"
+                  accept="image/*"
+                  onChange={manejoCambioImagen}
+                />
+              </Form.Group>
+            </Col>
+
+            <Col xs={12} md={6} className="d-flex align-items-center">
+              {nuevaPromocion.imagen_url ? (
+                <img
+                  src={nuevaPromocion.imagen_url}
+                  alt="Vista previa"
+                  className="img-fluid rounded-3"
+                  style={{ maxHeight: 140, objectFit: 'cover', width: '100%' }}
+                />
+              ) : (
+                <div className="border rounded-3 bg-light d-flex align-items-center justify-content-center p-3 text-muted small">
+                  Sin imagen seleccionada
+                </div>
+              )}
             </Col>
 
             <Col xs={12}>

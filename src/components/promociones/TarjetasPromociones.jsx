@@ -13,6 +13,18 @@ const TarjetasPromociones = ({ promociones = [], abrirModalEdicion, abrirModalEl
     <div className="d-flex flex-column gap-3">
       {promociones.map((promocion) => (
         <Card key={promocion.id} className="shadow-sm border-0">
+          {promocion.imagen_url ? (
+            <Card.Img
+              variant="top"
+              src={promocion.imagen_url}
+              style={{ height: 180, objectFit: 'cover' }}
+              className="rounded-top"
+            />
+          ) : (
+            <div className="bg-light rounded-top d-flex align-items-center justify-content-center" style={{ height: 180 }}>
+              <span className="text-muted">Sin imagen de promoción</span>
+            </div>
+          )}
           <Card.Body>
             <div className="d-flex justify-content-between align-items-start mb-3">
               <div>

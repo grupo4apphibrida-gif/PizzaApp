@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Plus, Edit, Trash2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { getProducts, createProduct, updateProduct, deleteProduct } from '../../../services/api';
+import NotificacionOperacion from '../../../components/NotificacionOperacion';
+import Paginacion from '../../../components/Paginacion';
 
 const convertFileToBase64 = (file) =>
   new Promise((resolve, reject) => {
@@ -20,6 +22,9 @@ const ProductosView = () => {
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [imagenFile, setImagenFile] = useState(null);
+  const [paginaActual, setPaginaActual] = useState(1);
+  const [registrosPorPagina, setRegistrosPorPagina] = useState(10);
+  const [toast, setToast] = useState({ mostrar: false, mensaje: '', tipo: '' });
 
   useEffect(() => {
     cargarProductos();
@@ -32,6 +37,7 @@ const ProductosView = () => {
       setProducts(productos || []);
     } catch (error) {
       console.error('Error cargando productos:', error);
+      setToast({ mostrar: true, mensaje: 'Error cargando productos', tipo: 'error' });
     } finally {
       setLoading(false);
     }
@@ -42,8 +48,10 @@ const ProductosView = () => {
     try {
       if (editingId) {
         await updateProduct(editingId, currentProduct);
+        setToast({ mostrar: true, mensaje: 'Producto actualizado con éxito', tipo: 'exito' });
       } else {
         await createProduct(currentProduct);
+        setToast({ mostrar: true, mensaje: 'Producto creado con éxito', tipo: 'exito' });
       }
       await cargarProductos();
       setShowModal(false);
@@ -52,6 +60,7 @@ const ProductosView = () => {
       setImagenFile(null);
     } catch (error) {
       console.error('Error guardando producto:', error);
+      setToast({ mostrar: true, mensaje: 'Error guardando producto', tipo: 'error' });
     }
   };
 
@@ -70,13 +79,19 @@ const ProductosView = () => {
     setShowModal(true);
   };
 
+  const indiceUltimoRegistro = paginaActual * registrosPorPagina;
+  const indicePrimerRegistro = indiceUltimoRegistro - registrosPorPagina;
+  const productosPaginados = products.slice(indicePrimerRegistro, indiceUltimoRegistro);
+
   const handleDelete = async (productId) => {
     if (!window.confirm('¿Eliminar este producto?')) return;
     try {
       await deleteProduct(productId);
       await cargarProductos();
+      setToast({ mostrar: true, mensaje: 'Producto eliminado', tipo: 'exito' });
     } catch (error) {
       console.error('Error eliminando producto:', error);
+      setToast({ mostrar: true, mensaje: 'Error eliminando producto', tipo: 'error' });
     }
   };
 
@@ -126,7 +141,7 @@ const ProductosView = () => {
                   <tr>
                     <td colSpan="5" className="text-center py-4 text-muted">No hay productos registrados aún.</td>
                   </tr>
-                ) : products.map(product => (
+                ) : productosPaginados.map(product => (
                   <tr key={product.id}>
                     <td className="py-4 px-4 fw-bold">
                       <div className="d-flex align-items-center gap-3">
@@ -154,6 +169,14 @@ const ProductosView = () => {
           </div>
         </div>
       </div>
+
+      <Paginacion
+        registrosPorPagina={registrosPorPagina}
+        totalRegistros={products.length}
+        paginaActual={paginaActual}
+        establecerPaginaActual={setPaginaActual}
+        establecerRegistrosPorPagina={setRegistrosPorPagina}
+      />
 
       {/* Modal de Producto */}
       {showModal && (
@@ -246,6 +269,12 @@ const ProductosView = () => {
           </div>
         </div>
       )}
+      <NotificacionOperacion
+        mostrar={toast.mostrar}
+        mensaje={toast.mensaje}
+        tipo={toast.tipo}
+        onCerrar={() => setToast({ ...toast, mostrar: false })}
+      />
     </motion.div>
   );
 };

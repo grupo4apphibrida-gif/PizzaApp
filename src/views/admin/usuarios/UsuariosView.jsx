@@ -3,6 +3,8 @@ import { Users, Plus } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { getUsers, createUser } from '../../../services/api';
 import ModalRegistroUsuario from '../../../components/usuarios/ModalRegistroUsuario';
+import NotificacionOperacion from '../../../components/NotificacionOperacion';
+import Paginacion from '../../../components/Paginacion';
 
 const UsuariosView = () => {
   const [users, setUsers] = useState([]);
@@ -15,6 +17,9 @@ const UsuariosView = () => {
     rol: 'empleado',
     activo: true,
   });
+  const [paginaActual, setPaginaActual] = useState(1);
+  const [registrosPorPagina, setRegistrosPorPagina] = useState(10);
+  const [toast, setToast] = useState({ mostrar: false, mensaje: '', tipo: '' });
 
   useEffect(() => {
     cargarUsuarios();
@@ -27,6 +32,7 @@ const UsuariosView = () => {
       setUsers(usuarios || []);
     } catch (error) {
       console.error('Error cargando usuarios:', error);
+      setToast({ mostrar: true, mensaje: 'Error cargando usuarios', tipo: 'error' });
     } finally {
       setLoading(false);
     }
@@ -46,10 +52,16 @@ const UsuariosView = () => {
       setMostrarModal(false);
       setNuevoUsuario({ nombre: '', correo: '', password: '', rol: 'empleado', activo: true });
       await cargarUsuarios();
+      setToast({ mostrar: true, mensaje: 'Usuario creado con éxito', tipo: 'exito' });
     } catch (error) {
       console.error('Error creando usuario:', error);
+      setToast({ mostrar: true, mensaje: 'Error creando usuario', tipo: 'error' });
     }
   };
+
+  const indiceUltimoRegistro = paginaActual * registrosPorPagina;
+  const indicePrimerRegistro = indiceUltimoRegistro - registrosPorPagina;
+  const usuariosPaginados = users.slice(indicePrimerRegistro, indiceUltimoRegistro);
 
   return (
     <motion.div 
@@ -91,7 +103,7 @@ const UsuariosView = () => {
                   <tr>
                     <td colSpan="4" className="text-center py-4 text-muted">No hay usuarios registrados aún.</td>
                   </tr>
-                ) : users.map(user => (
+                ) : usuariosPaginados.map(user => (
                   <tr key={user.id}>
                     <td className="py-4 px-4 fw-bold">{user.nombre}</td>
                     <td className="py-4 px-4 text-muted">{user.correo}</td>
@@ -114,6 +126,19 @@ const UsuariosView = () => {
         nuevoUsuario={nuevoUsuario}
         manejoCambioInput={manejoCambioInput}
         agregarUsuario={agregarUsuario}
+      />
+      <Paginacion
+        registrosPorPagina={registrosPorPagina}
+        totalRegistros={users.length}
+        paginaActual={paginaActual}
+        establecerPaginaActual={setPaginaActual}
+        establecerRegistrosPorPagina={setRegistrosPorPagina}
+      />
+      <NotificacionOperacion
+        mostrar={toast.mostrar}
+        mensaje={toast.mensaje}
+        tipo={toast.tipo}
+        onCerrar={() => setToast({ ...toast, mostrar: false })}
       />
     </motion.div>
   );

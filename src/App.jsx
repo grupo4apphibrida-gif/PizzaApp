@@ -4,6 +4,7 @@ import { AuthProvider } from './context/AuthContext';
 import { CarritoProvider } from './context/CarritoContext';
 import Encabezado from './components/navegacion/Encabezado';
 import EmployeeDashboard from './views/employee/EmployeeDashboard';
+import ProtectedRoute from './components/rutas/ProtectedRoute';
 
 // IMPORTACIONES CORRECTAS según tu estructura
 import CatalogoCliente from './views/client/menu/CatalogoCliente';
@@ -17,6 +18,8 @@ import IngredientsView from './views/admin/ingredientes/IngredientesView';
 import PromocionesView from './views/admin/promociones/PromocionesView';
 import PedidosAdminView from './views/admin/pedidos/PedidosAdminView';
 import ReportesAdminView from './views/admin/reportes/ReportesAdminView';
+import EmpleadosView from './views/admin/empleados/EmpleadosView';
+import PermisosView from './views/admin/permisos/PermisosView';
 
 import './App.css';
 
@@ -39,17 +42,19 @@ const AppContent = () => {
         <Route path="/cliente/mis-pedidos" element={<MisPedidosView />} />
 
         {/* ========== RUTAS DE ADMIN ========== */}
-        <Route path="/admin" element={<Navigate to="/admin/reportes" replace />} />
-        <Route path="/admin/reportes" element={<ReportesAdminView />} />
-        <Route path="/admin/productos" element={<ProductosView />} />
-        <Route path="/admin/usuarios" element={<UsuariosView />} />
-        <Route path="/admin/ingredientes" element={<IngredientsView />} />
-        <Route path="/admin/promociones" element={<PromocionesView />} />
-        <Route path="/admin/pedidos" element={<PedidosAdminView />} />
+        <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><Navigate to="/admin/reportes" replace /></ProtectedRoute>} />
+        <Route path="/admin/reportes" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_inicio"><ReportesAdminView /></ProtectedRoute>} />
+        <Route path="/admin/productos" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_productos"><ProductosView /></ProtectedRoute>} />
+        <Route path="/admin/usuarios" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_usuarios"><UsuariosView /></ProtectedRoute>} />
+        <Route path="/admin/ingredientes" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_ingredientes"><IngredientsView /></ProtectedRoute>} />
+        <Route path="/admin/promociones" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_promociones"><PromocionesView /></ProtectedRoute>} />
+        <Route path="/admin/pedidos" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_pedidos"><PedidosAdminView /></ProtectedRoute>} />
+        <Route path="/admin/empleados" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_empleados"><EmpleadosView /></ProtectedRoute>} />
+        <Route path="/admin/permisos" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_permisos"><PermisosView /></ProtectedRoute>} />
 
         {/* ========== RUTAS DE EMPLEADO ========== */}
-        <Route path="/employee" element={<EmployeeDashboard />} />
-        <Route path="/employee/pedidos" element={<PedidosAdminView />} />
+        <Route path="/employee" element={<ProtectedRoute requiredPermission="ver_pedidos"><EmployeeDashboard /></ProtectedRoute>} />
+        <Route path="/employee/pedidos" element={<ProtectedRoute requiredPermission="ver_pedidos"><PedidosAdminView /></ProtectedRoute>} />
 
         {/* Redirección por defecto */}
         <Route path="*" element={<Navigate to="/" />} />
