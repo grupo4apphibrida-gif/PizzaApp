@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Card, Button, Spinner, Badge, Modal, Form } from "react-bootstrap";
 import { motion } from "framer-motion";
-import { supabase } from "../database/supabaseconfig";
+import { supabase } from "../../../PizzaApp/src/database/supabaseconfig";  // ← CORREGIDO
 import { Users, UserPlus, Search, Mail, Phone, UserCheck, Edit, Trash2, X, Save, AlertTriangle } from "lucide-react";
-import NotificacionOperacion from "../components/NotificacionOperacion";
-import Paginacion from "../components/Paginacion";
+import NotificacionOperacion from "../../../PizzaApp/src/components/NotificacionOperacion";  // ← CORREGIDO
+import Paginacion from "../../../PizzaApp/src/components/Paginacion";  // ← CORREGIDO
 
 const ClientesView = () => {
   const [toast, setToast] = useState({ mostrar: false, mensaje: "", tipo: "" });
@@ -45,25 +45,30 @@ const ClientesView = () => {
   const cargarClientes = async () => {
     try {
       setCargando(true);
+      console.log("🔄 Cargando clientes...");
+      
       const { data, error } = await supabase
         .from("clientes")
         .select("*")
         .order("nombre_cliente", { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error("❌ Error de Supabase:", error);
+        throw error;
+      }
       
-      console.log("✅ Clientes cargados:", data);
+      console.log("✅ Clientes cargados:", data?.length || 0);
       setClientes(data || []);
       setClientesFiltrados(data || []);
       
       const total = data?.length || 0;
-      const conEmail = data?.filter(c => c.email).length || 0;
-      const conTelefono = data?.filter(c => c.celular).length || 0;
+      const conEmail = data?.filter(c => c?.email).length || 0;
+      const conTelefono = data?.filter(c => c?.celular).length || 0;
       setStats({ total, conEmail, conTelefono });
       
     } catch (err) {
       console.error("Error cargando clientes:", err);
-      setToast({ mostrar: true, mensaje: "Error al cargar clientes", tipo: "error" });
+      setToast({ mostrar: true, mensaje: "Error al cargar clientes: " + err.message, tipo: "error" });
     } finally {
       setCargando(false);
     }
@@ -236,18 +241,14 @@ const ClientesView = () => {
         <div className="p-4 border-bottom">
           <div className="position-relative">
             <Search size={18} className="position-absolute top-50 start-3 translate-middle-y text-muted" style={{ left: '12px' }} />
-            <input type="text" className="form-control rounded-pill ps-5 py-2" placeholder="Buscar por nombre, apellido, email o teléfono..." value={textoBusqueda} onChange={(e) => setTextoBusqueda(e.target.value)} />
+            <input 
+              type="text" 
+              className="form-control rounded-pill ps-5 py-2" 
+              placeholder="Buscar por nombre, apellido, email o teléfono..." 
+              value={textoBusqueda} 
+              onChange={(e) => setTextoBusqueda(e.target.value)} 
+            />
           </div>
-        </div>
-        <div className="p-3 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-3">
-          <div className="text-muted small">
-            {clientes.length === 0
-              ? 'No hay clientes cargados todavía.'
-              : `Mostrando ${clientesFiltrados.length} de ${clientes.length} cliente${clientes.length === 1 ? '' : 's'}`}
-          </div>
-          {textoBusqueda && (
-            <button className="btn btn-outline-secondary btn-sm rounded-pill" onClick={() => setTextoBusqueda("")}>Mostrar todos</button>
-          )}
         </div>
 
         {/* Tabla de clientes */}
@@ -259,13 +260,6 @@ const ClientesView = () => {
             <button className="btn btn-danger rounded-pill px-4" onClick={() => setMostrarModalRegistro(true)}>
               <UserPlus size={16} className="me-2" /> Agregar Cliente
             </button>
-          </div>
-        ) : clientesFiltrados.length === 0 ? (
-          <div className="text-center py-5">
-            <Users size={48} className="text-muted mb-3" />
-            <h5>No se encontraron clientes con esa búsqueda</h5>
-            <p className="text-muted">Intenta con otro término o presiona Mostrar todos.</p>
-            <button className="btn btn-secondary rounded-pill px-4" onClick={() => setTextoBusqueda("")}>Mostrar todos</button>
           </div>
         ) : (
           <>
@@ -292,16 +286,24 @@ const ClientesView = () => {
                         {cliente.creado_en ? new Date(cliente.creado_en).toLocaleDateString() : "-"}
                       </td>
                       <td className="py-3 px-4 text-end">
-                        <button className="btn btn-outline-warning rounded-circle p-2 me-2" style={{ width: 36, height: 36 }} onClick={() => {
-                          setClienteEditar(cliente);
-                          setMostrarModalEdicion(true);
-                        }}>
+                        <button 
+                          className="btn btn-outline-warning rounded-circle p-2 me-2" 
+                          style={{ width: 36, height: 36 }} 
+                          onClick={() => {
+                            setClienteEditar(cliente);
+                            setMostrarModalEdicion(true);
+                          }}
+                        >
                           <Edit size={16} />
                         </button>
-                        <button className="btn btn-outline-danger rounded-circle p-2" style={{ width: 36, height: 36 }} onClick={() => {
-                          setClienteAEliminar(cliente);
-                          setMostrarModalEliminacion(true);
-                        }}>
+                        <button 
+                          className="btn btn-outline-danger rounded-circle p-2" 
+                          style={{ width: 36, height: 36 }} 
+                          onClick={() => {
+                            setClienteAEliminar(cliente);
+                            setMostrarModalEliminacion(true);
+                          }}
+                        >
                           <Trash2 size={16} />
                         </button>
                       </td>
@@ -311,13 +313,19 @@ const ClientesView = () => {
               </table>
             </div>
             <div className="p-3 border-top">
-              <Paginacion registrosPorPagina={registrosPorPagina} totalRegistros={clientesFiltrados.length} paginaActual={paginaActual} establecerPaginaActual={setPaginaActual} establecerRegistrosPorPagina={setRegistrosPorPagina} />
+              <Paginacion 
+                registrosPorPagina={registrosPorPagina} 
+                totalRegistros={clientesFiltrados.length} 
+                paginaActual={paginaActual} 
+                establecerPaginaActual={setPaginaActual} 
+                establecerRegistrosPorPagina={setRegistrosPorPagina} 
+              />
             </div>
           </>
         )}
       </div>
 
-      {/* Modal Registro Cliente */}
+      {/* Modales... (mantén el resto igual) */}
       <Modal show={mostrarModalRegistro} onHide={() => setMostrarModalRegistro(false)} centered>
         <Modal.Header className="bg-danger text-white">
           <Modal.Title><UserPlus size={20} className="me-2" /> Nuevo Cliente</Modal.Title>
@@ -336,7 +344,6 @@ const ClientesView = () => {
         </Modal.Footer>
       </Modal>
 
-      {/* Modal Edición Cliente */}
       <Modal show={mostrarModalEdicion} onHide={() => setMostrarModalEdicion(false)} centered>
         <Modal.Header className="bg-warning">
           <Modal.Title><Edit size={20} className="me-2" /> Editar Cliente</Modal.Title>
@@ -355,7 +362,6 @@ const ClientesView = () => {
         </Modal.Footer>
       </Modal>
 
-      {/* Modal Eliminación Cliente */}
       <Modal show={mostrarModalEliminacion} onHide={() => setMostrarModalEliminacion(false)} centered>
         <Modal.Header className="bg-danger text-white">
           <Modal.Title><AlertTriangle size={20} className="me-2" /> Confirmar Eliminación</Modal.Title>
