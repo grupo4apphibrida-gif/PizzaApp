@@ -10,6 +10,13 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 
+// Función para validar si un ID es UUID
+const isUUID = (id) => {
+  if (!id) return false;
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(String(id));
+};
+
 const CarritoView = () => {
   const { 
     carrito, 
@@ -95,10 +102,16 @@ const CarritoView = () => {
     try {
       console.log("🚀 Iniciando proceso de pedido...");
       console.log("📦 Carrito:", carrito);
-      console.log("👤 Usuario:", profile);
       
       const tipoEntrega = carrito.some(item => item.tipoEntrega === "envio") ? "envio" : "retiro";
       const direccionPrincipal = carrito.find(item => item.tipoEntrega === "envio")?.direccionEnvio || null;
+
+      // Determinar si el ID es UUID o número
+      const userId = user?.id;
+      const esUUID = isUUID(userId);
+      
+      console.log("🆔 User ID:", userId);
+      console.log("📋 Es UUID:", esUUID);
 
       const pedidoData = {
         total: totalConEnvio,
@@ -111,9 +124,15 @@ const CarritoView = () => {
         tipo_entrega: tipoEntrega,
         direccion_envio: direccionPrincipal,
         costo_envio: costoEnvio,
-        usuario_id: user?.id || null,
-        creado_en: new Date().toISOString()
+        creado_en: new Date().toISOString(),
       };
+      
+      // Si es UUID, usar usuario_id; si es número, usar cliente_id
+      if (esUUID) {
+        pedidoData.usuario_id = userId;
+      } else if (userId && !isNaN(Number(userId))) {
+        pedidoData.cliente_id = Number(userId);
+      }
 
       console.log("📤 Enviando pedido a Supabase:", pedidoData);
 
@@ -255,7 +274,7 @@ const CarritoView = () => {
                             <Plus size={14} />
                           </button>
                         </div>
-                       </td>
+                      </td>
                       <td className="align-middle fw-bold text-danger">
                         C$ {(item.precio * item.cantidad).toFixed(2)}
                       </td>
