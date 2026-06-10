@@ -1,167 +1,250 @@
 import React, { useState, useEffect } from 'react';
-import { getOrders, updateOrderStatus, getProducts, createOrder } from '../../services/api';
 import { supabase } from '../../database/supabaseconfig';
 import PedidosActivosView from './pedidos/PedidosActivosView';
 import HistorialView from './historial/HistorialView';
 import { 
   ChefHat, ClipboardList, CheckCircle2, Truck, XCircle, 
-  Clock, User, MapPin, Plus, Trash2, Phone
+  Clock, User, MapPin, Plus, Trash2, Phone, Package
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const EmployeeDashboard = () => {
-  // Estados para pedidos y productos
-  const [orders, setOrders] = useState([]);
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [pedidos, setPedidos] = useState([]);
+  const [productos, setProductos] = useState([]);
+  const [cargando, setCargando] = useState(true);
   const [showOrderModal, setShowOrderModal] = useState(false);
   
   // Estados para nuevo pedido manual
-  const [newOrderItems, setNewOrderItems] = useState([]);
-  const [clientName, setClientName] = useState('');
-  const [clientPhone, setClientPhone] = useState('');
-  const [clientAddress, setClientAddress] = useState('');
-  const [orderNotes, setOrderNotes] = useState('');
-  const [deliveryType, setDeliveryType] = useState('mesa'); // mesa, entrega
+  const [nuevoPedidoItems, setNuevoPedidoItems] = useState([]);
+  const [nombreCliente, setNombreCliente] = useState('');
+  const [telefonoCliente, setTelefonoCliente] = useState('');
+  const [direccionCliente, setDireccionCliente] = useState('');
+  const [tipoEntrega, setTipoEntrega] = useState('retiro');
+  const [procesando, setProcesando] = useState(false);
 
-  // Cargar datos iniciales y suscribirse a cambios en tiempo real
+  const normalizeEstado = (estado) => {
+    if (!estado) return '';
+    return estado.toString().trim().toLowerCase().replace(/\s+/g, '_');
+  };
+
+  const activeOrders = pedidos.filter((pedido) => {
+    const estado = normalizeEstado(pedido.estado);
+    return estado === 'pendiente' || estado === 'en_preparacion';
+  });
+
   useEffect(() => {
-    fetchOrders();
-    fetchProducts();
+    cargarPedidos();
+    cargarProductos();
 
-    // Suscripción a cambios en la tabla de pedidos
+    // Suscripción a cambios en tiempo real
     const subscription = supabase
-      .channel('public:orders_employee')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'pedidos' }, payload => {
-        fetchOrders();
+      .channel('public:pedidos_cocina')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'pedidos' }, () => {
+        cargarPedidos();
       })
       .subscribe();
 
-    // Limpiar suscripción al desmontar
     return () => {
       supabase.removeChannel(subscription);
     };
   }, []);
 
-  // Obtener pedidos de la base de datos
-  const fetchOrders = async () => {
+  const cargarPedidos = async () => {
     try {
-      const data = await getOrders();
-      setOrders(data);
+      setCargando(true);
+
+      const { data, error } = await supabase
+        .from("pedidos")
+        .select('*')
+        .order("creado_en", { ascending: false });
+
+      if (error) throw error;
+
+      console.log("📦 Pedidos cargados para cocina:", data?.length || 0);
+      setPedidos(data || []);
     } catch (err) {
-      console.error('Error fetching orders:', err);
+      console.error('Error cargando pedidos:', err);
     } finally {
-      setLoading(false);
+      setCargando(false);
     }
   };
 
-  // Obtener productos disponibles
-  const fetchProducts = async () => {
+  const cargarProductos = async () => {
     try {
-      const data = await getProducts();
-      setProducts(data);
+      const { data, error } = await supabase
+        .from("productos")
+        .select("*")
+        .eq("disponible", true)
+        .order("nombre");
+
+      if (error) throw error;
+      setProductos(data || []);
     } catch (err) {
-      console.error('Error fetching products:', err);
+      console.error('Error cargando productos:', err);
     }
   };
 
-  // Actualizar estado de un pedido
-  const handleStatusChange = async (orderId, newStatus) => {
+  const actualizarEstadoPedido = async (pedidoId, nuevoEstado) => {
     try {
-      await updateOrderStatus(orderId, newStatus);
+      const { error } = await supabase
+        .from("pedidos")
+        .update({ 
+          estado: nuevoEstado,
+          completado_en: nuevoEstado === 'entregado' ? new Date().toISOString() : null
+        })
+        .eq("id", pedidoId);
+
+      if (error) throw error;
+      
+      console.log(`✅ Pedido ${pedidoId} actualizado a: ${nuevoEstado}`);
+      await cargarPedidos();
     } catch (err) {
-      console.error('Error updating order status:', err);
-      alert('Error al actualizar el estado del pedido.');
+      console.error('Error actualizando pedido:', err);
+      alert('Error al actualizar el estado del pedido');
     }
   };
 
-  // Agregar producto al pedido manual
-  const addToManualOrder = (product) => {
-    const existing = newOrderItems.find(item => item.product_id === product.id);
-    if (existing) {
-      // Si ya existe, aumentar la cantidad
-      setNewOrderItems(newOrderItems.map(item => 
-        item.product_id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+  const agregarProductoAlPedido = (producto) => {
+    const existente = nuevoPedidoItems.find(item => item.producto_id === producto.id);
+    if (existente) {
+      setNuevoPedidoItems(nuevoPedidoItems.map(item => 
+        item.producto_id === producto.id ? { ...item, cantidad: item.cantidad + 1 } : item
       ));
     } else {
-      // Si no existe, agregarlo nuevo
-      setNewOrderItems([...newOrderItems, { 
-        product_id: product.id, 
-        name: product.nombre, 
-        price: product.precio, 
-        quantity: 1 
+      setNuevoPedidoItems([...nuevoPedidoItems, { 
+        producto_id: producto.id, 
+        nombre: producto.nombre, 
+        precio: producto.precio, 
+        cantidad: 1 
       }]);
     }
   };
 
-  // Crear pedido manual
-  const handleAddManualOrder = async (e) => {
-    e.preventDefault();
-    if (newOrderItems.length === 0) return alert('Agrega al menos un producto');
-    if (!clientName) return alert('Ingresa el nombre del cliente');
+  const eliminarProductoDelPedido = (productoId) => {
+    setNuevoPedidoItems(nuevoPedidoItems.filter(item => item.producto_id !== productoId));
+  };
+
+  const actualizarCantidadProducto = (productoId, nuevaCantidad) => {
+    if (nuevaCantidad <= 0) {
+      eliminarProductoDelPedido(productoId);
+      return;
+    }
+    setNuevoPedidoItems(nuevoPedidoItems.map(item => 
+      item.producto_id === productoId ? { ...item, cantidad: nuevaCantidad } : item
+    ));
+  };
+
+  const crearPedidoManual = async () => {
+    if (nuevoPedidoItems.length === 0) {
+      alert('Agrega al menos un producto');
+      return;
+    }
+    if (!nombreCliente.trim()) {
+      alert('Ingresa el nombre del cliente');
+      return;
+    }
+    
+    setProcesando(true);
     
     try {
-      const total = newOrderItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-      const orderData = {
-        usuario_id: null,
-        nombre_cliente: clientName,
-        tipo: deliveryType,
-        estado: 'pendiente',
-        total: total
+      const total = nuevoPedidoItems.reduce((acc, item) => acc + (item.precio * item.cantidad), 0);
+      
+      const pedidoData = {
+        nombre_cliente: nombreCliente,
+        email_cliente: null,
+        telefono_cliente: telefonoCliente || null,
+        total: total,
+        estado: "pendiente",
+        prioridad: "normal",
+        tipo: "cliente",
+        tipo_entrega: tipoEntrega,
+        direccion_envio: tipoEntrega === "envio" ? direccionCliente : null,
+        costo_envio: tipoEntrega === "envio" ? 30 : 0,
+        creado_en: new Date().toISOString()
       };
 
-      await createOrder(orderData, newOrderItems);
-      // Limpiar formulario después de crear el pedido
+      const { data: pedido, error: pedidoError } = await supabase
+        .from("pedidos")
+        .insert([pedidoData])
+        .select()
+        .single();
+
+      if (pedidoError) throw pedidoError;
+
+      const detalles = nuevoPedidoItems.map(item => ({
+        pedido_id: pedido.id,
+        producto_id: String(item.producto_id),
+        cantidad: item.cantidad,
+        precio: item.precio,
+        tamanio: null,
+        piezas: null,
+        tipo_entrega: tipoEntrega,
+        direccion_envio: tipoEntrega === "envio" ? direccionCliente : null,
+        es_promocion: false
+      }));
+
+      const { error: detalleError } = await supabase
+        .from("detalle_pedido")
+        .insert(detalles);
+
+      if (detalleError) throw detalleError;
+
+      // Limpiar formulario
       setShowOrderModal(false);
-      setNewOrderItems([]);
-      setClientName('');
-      setClientPhone('');
-      setClientAddress('');
-      setOrderNotes('');
-      setDeliveryType('mesa');
-      alert('Pedido registrado con éxito');
+      setNuevoPedidoItems([]);
+      setNombreCliente('');
+      setTelefonoCliente('');
+      setDireccionCliente('');
+      setTipoEntrega('retiro');
+      
+      alert('✅ Pedido registrado con éxito');
+      await cargarPedidos();
+      
     } catch (err) {
-      console.error('Error creating manual order:', err);
-      alert('Error al crear el pedido manual');
+      console.error('Error creando pedido manual:', err);
+      alert('Error al crear el pedido manual: ' + err.message);
+    } finally {
+      setProcesando(false);
     }
   };
 
-  // Obtener ícono según estado del pedido
-  const getStatusIcon = (status) => {
-    switch (status) {
+  const getStatusIcon = (estado) => {
+    const normalized = normalizeEstado(estado);
+    switch (normalized) {
       case 'pendiente': return <Clock size={18} />;
-      case 'en preparación': return <ChefHat size={18} />;
-      case 'listo': return <CheckCircle2 size={18} />;
-      case 'entregado': return <Truck size={18} />;
-      default: return <XCircle size={18} />;
+      case 'en_preparacion': return <Package size={18} />;
+      case 'entregado': return <CheckCircle2 size={18} />;
+      case 'cancelado': return <XCircle size={18} />;
+      default: return <Clock size={18} />;
     }
   };
 
-  // Obtener color según estado del pedido
-  const getStatusColor = (status) => {
-    switch (status) {
+  const getStatusColor = (estado) => {
+    const normalized = normalizeEstado(estado);
+    switch (normalized) {
       case 'pendiente': return 'warning';
-      case 'en preparación': return 'info';
-      case 'listo': return 'success';
-      case 'entregado': return 'primary';
+      case 'en_preparacion': return 'info';
+      case 'entregado': return 'success';
+      case 'cancelado': return 'danger';
       default: return 'secondary';
     }
   };
 
-  // Pantalla de carga
-  if (loading) return (
-    <div className="d-flex justify-content-center align-items-center vh-100 bg-light">
-      <div className="text-center">
-        <div className="spinner-border text-pizza-red mb-3" style={{ width: '3rem', height: '3rem' }} role="status"></div>
-        <p className="text-muted fw-bold">Cargando pedidos...</p>
+  if (cargando) {
+    return (
+      <div className="d-flex justify-content-center align-items-center vh-100 bg-light">
+        <div className="text-center">
+          <div className="spinner-border text-danger mb-3" style={{ width: '3rem', height: '3rem' }} role="status"></div>
+          <p className="text-muted fw-bold">Cargando pedidos...</p>
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
 
   return (
     <div className="bg-light min-vh-100 pb-5">
       <div className="container-fluid px-4 px-md-5">
-        {/* Encabezado del dashboard */}
+        {/* Encabezado */}
         <div className="row g-4 mb-4">
           <div className="col-12">
             <div className="bg-white p-4 rounded-4 shadow-sm d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
@@ -171,119 +254,85 @@ const EmployeeDashboard = () => {
               </div>
               <div className="d-flex gap-2">
                 <button 
-                  className="btn btn-pizza-primary rounded-pill px-4 py-2 fw-bold text-uppercase x-small shadow-sm d-flex align-items-center gap-2"
+                  className="btn btn-danger rounded-pill px-4 py-2 fw-bold d-flex align-items-center gap-2"
                   onClick={() => setShowOrderModal(true)}
                 >
                   <Plus size={18} />
                   Nuevo Pedido
                 </button>
-                <span className="badge bg-dark text-white rounded-pill px-4 py-2 fs-6 fw-bold d-flex align-items-center">
-                  {orders.filter(o => !['entregado', 'cancelado'].includes(o.status)).length} Activos
+                <span className="badge bg-dark text-white rounded-pill px-4 py-2 fs-6 fw-bold">
+                  {activeOrders.length} Activos
                 </span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Subvistas de pedidos */}
+        {/* Pedidos Activos */}
         <PedidosActivosView 
-          orders={orders}
+          orders={activeOrders}
           getStatusIcon={getStatusIcon}
           getStatusColor={getStatusColor}
-          onStatusChange={handleStatusChange}
+          onStatusChange={actualizarEstadoPedido}
         />
         
+        {/* Historial */}
         <HistorialView 
-          orders={orders}
+          orders={pedidos}
           getStatusColor={getStatusColor}
+          actualizarEstado={actualizarEstadoPedido}
         />
       </div>
 
       {/* Modal para nuevo pedido manual */}
       {showOrderModal && (
-        <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}>
+        <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', zIndex: 1050 }}>
           <div className="modal-dialog modal-xl modal-dialog-centered">
             <div className="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
-              <div className="modal-header bg-pizza-gradient text-white border-0 p-4">
-                <h5 className="modal-title fw-black d-flex align-items-center gap-2">
-                  <Plus /> Nuevo Pedido Manual
+              <div className="modal-header bg-danger text-white border-0 p-4">
+                <h5 className="modal-title fw-bold d-flex align-items-center gap-2">
+                  <Plus size={20} /> Nuevo Pedido Manual
                 </h5>
                 <button type="button" className="btn-close btn-close-white" onClick={() => setShowOrderModal(false)}></button>
               </div>
+              
               <div className="modal-body p-0">
                 <div className="row g-0">
                   {/* Columna izquierda: Datos del cliente y productos */}
                   <div className="col-md-7 p-4 border-end">
-                    {/* Formulario de datos del cliente */}
                     <div className="mb-4">
-                      <h6 className="fw-bold text-muted text-uppercase x-small mb-3">Datos del Cliente</h6>
+                      <h6 className="fw-bold text-muted mb-3">📋 Datos del Cliente</h6>
                       <div className="row g-3">
                         <div className="col-md-6">
                           <label className="form-label small fw-bold">Nombre *</label>
-                          <input 
-                            type="text" 
-                            className="form-control" 
-                            value={clientName}
-                            onChange={(e) => setClientName(e.target.value)}
-                            placeholder="Nombre completo"
-                          />
+                          <input type="text" className="form-control" value={nombreCliente} onChange={(e) => setNombreCliente(e.target.value)} placeholder="Nombre completo" />
                         </div>
                         <div className="col-md-6">
                           <label className="form-label small fw-bold">Teléfono</label>
-                          <input 
-                            type="tel" 
-                            className="form-control" 
-                            value={clientPhone}
-                            onChange={(e) => setClientPhone(e.target.value)}
-                            placeholder="8888-8888"
-                          />
+                          <input type="tel" className="form-control" value={telefonoCliente} onChange={(e) => setTelefonoCliente(e.target.value)} placeholder="8888-8888" />
                         </div>
                         <div className="col-12">
                           <label className="form-label small fw-bold">Dirección</label>
-                          <input 
-                            type="text" 
-                            className="form-control" 
-                            value={clientAddress}
-                            onChange={(e) => setClientAddress(e.target.value)}
-                            placeholder="Barrio, casa #, referencias..."
-                          />
+                          <input type="text" className="form-control" value={direccionCliente} onChange={(e) => setDireccionCliente(e.target.value)} placeholder="Barrio, casa #, referencias..." />
                         </div>
                         <div className="col-md-6">
-                          <label className="form-label small fw-bold">Tipo de Pedido</label>
-                          <select 
-                            className="form-select"
-                            value={deliveryType}
-                            onChange={(e) => setDeliveryType(e.target.value)}
-                          >
-                            <option value="mesa">Para Mesa</option>
-                            <option value="entrega">Entrega a Domicilio</option>
+                          <label className="form-label small fw-bold">Tipo de Entrega</label>
+                          <select className="form-select" value={tipoEntrega} onChange={(e) => setTipoEntrega(e.target.value)}>
+                            <option value="retiro">Retiro en Tienda</option>
+                            <option value="envio">Envío a Domicilio (+C$30)</option>
                           </select>
-                        </div>
-                        <div className="col-12">
-                          <label className="form-label small fw-bold">Notas</label>
-                          <textarea 
-                            className="form-control" 
-                            rows={2}
-                            value={orderNotes}
-                            onChange={(e) => setOrderNotes(e.target.value)}
-                            placeholder="Sin cebolla, extra queso, etc..."
-                          />
                         </div>
                       </div>
                     </div>
 
-                    {/* Selección de productos */}
-                    <h6 className="fw-bold text-muted text-uppercase x-small mb-3">Seleccionar Productos</h6>
-                    <div className="row g-3 overflow-auto" style={{ maxHeight: '300px' }}>
-                      {products.map(product => (
-                        <div key={product.id} className="col-6">
-                          <div 
-                            className="card border-0 bg-light p-3 rounded-4 cursor-pointer hover-shadow transition-all"
-                            onClick={() => addToManualOrder(product)}
-                          >
-                            <img src={product.imagen_url || 'https://via.placeholder.com/100'} className="rounded-3 mb-2 w-100" style={{ height: 80, objectFit: 'cover' }} alt="" />
-                            <h6 className="fw-bold mb-1 small">{product.nombre}</h6>
-                            <span className="text-pizza-red fw-black small">C${product.precio}</span>
+                    <h6 className="fw-bold text-muted mb-3">🍕 Seleccionar Productos</h6>
+                    <div className="row g-3 overflow-auto" style={{ maxHeight: '350px' }}>
+                      {productos.map(producto => (
+                        <div key={producto.id} className="col-6 col-md-4">
+                          <div className="card border-0 bg-light p-2 rounded-3 cursor-pointer hover-shadow" onClick={() => agregarProductoAlPedido(producto)} style={{ cursor: 'pointer' }}>
+                            <img src={producto.imagen_url || 'https://via.placeholder.com/100'} className="rounded-3 mb-2 w-100" style={{ height: 80, objectFit: 'cover' }} alt="" />
+                            <h6 className="fw-bold mb-1 small text-truncate">{producto.nombre}</h6>
+                            <span className="text-danger fw-bold small">C$ {producto.precio}</span>
                           </div>
                         </div>
                       ))}
@@ -292,66 +341,43 @@ const EmployeeDashboard = () => {
                   
                   {/* Columna derecha: Resumen del pedido */}
                   <div className="col-md-5 p-4 bg-light">
-                    <h6 className="fw-bold text-muted text-uppercase x-small mb-3">Detalle del Pedido</h6>
+                    <h6 className="fw-bold text-muted mb-3">🛒 Resumen del Pedido</h6>
                     <div className="mb-4 overflow-auto" style={{ maxHeight: '400px' }}>
-                      {newOrderItems.map(item => (
-                        <div key={item.product_id} className="d-flex justify-content-between align-items-center mb-3 bg-white p-3 rounded-3 shadow-sm">
-                          <div className="flex-1">
-                            <p className="mb-0 fw-bold small">{item.name}</p>
-                            <div className="d-flex align-items-center gap-2">
-                              <small className="text-muted">C${item.price}</small>
-                              <div className="d-flex align-items-center gap-1">
-                                <button 
-                                  className="btn btn-sm btn-outline-secondary rounded-circle"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    if (item.quantity > 1) {
-                                      setNewOrderItems(newOrderItems.map(i => 
-                                        i.product_id === item.product_id ? { ...i, quantity: i.quantity - 1 } : i
-                                      ));
-                                    }
-                                  }}
-                                >
-                                  -
-                                </button>
-                                <span className="fw-bold px-2">{item.quantity}</span>
-                                <button 
-                                  className="btn btn-sm btn-outline-secondary rounded-circle"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setNewOrderItems(newOrderItems.map(i => 
-                                      i.product_id === item.product_id ? { ...i, quantity: i.quantity + 1 } : i
-                                    ));
-                                  }}
-                                >
-                                  +
-                                </button>
+                      {nuevoPedidoItems.length === 0 ? (
+                        <p className="text-center text-muted py-5">Carrito vacío</p>
+                      ) : (
+                        nuevoPedidoItems.map(item => (
+                          <div key={item.producto_id} className="d-flex justify-content-between align-items-center mb-2 bg-white p-2 rounded-3 shadow-sm">
+                            <div className="flex-grow-1">
+                              <p className="mb-0 fw-bold small">{item.nombre}</p>
+                              <div className="d-flex align-items-center gap-2">
+                                <small className="text-muted">C$ {item.precio}</small>
+                                <div className="d-flex align-items-center gap-1">
+                                  <button className="btn btn-sm btn-outline-secondary rounded-circle" style={{ width: 28, height: 28 }} onClick={() => actualizarCantidadProducto(item.producto_id, item.cantidad - 1)}>-</button>
+                                  <span className="fw-bold px-2">{item.cantidad}</span>
+                                  <button className="btn btn-sm btn-outline-secondary rounded-circle" style={{ width: 28, height: 28 }} onClick={() => actualizarCantidadProducto(item.producto_id, item.cantidad + 1)}>+</button>
+                                </div>
                               </div>
                             </div>
+                            <button className="btn btn-link text-danger p-0" onClick={() => eliminarProductoDelPedido(item.producto_id)}><Trash2 size={16} /></button>
                           </div>
-                          <button 
-                            className="btn btn-link text-danger p-0 ms-2"
-                            onClick={() => setNewOrderItems(newOrderItems.filter(i => i.product_id !== item.product_id))}
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      ))}
-                      {newOrderItems.length === 0 && <p className="text-center text-muted py-5">Carrito vacío</p>}
+                        ))
+                      )}
                     </div>
+                    
                     <div className="pt-3 border-top">
                       <div className="d-flex justify-content-between mb-3">
                         <span className="fw-bold">Total</span>
-                        <span className="fw-black text-pizza-red fs-4">
-                          C${newOrderItems.reduce((acc, i) => acc + (i.price * i.quantity), 0).toFixed(2)}
+                        <span className="fw-bold text-danger fs-4">
+                          C${nuevoPedidoItems.reduce((acc, i) => acc + (i.precio * i.cantidad), 0).toFixed(2)}
                         </span>
                       </div>
                       <button 
-                        className="btn btn-pizza-primary w-100 py-3 rounded-3 fw-bold shadow-lg"
-                        onClick={handleAddManualOrder}
-                        disabled={newOrderItems.length === 0 || !clientName}
+                        className="btn btn-danger w-100 py-3 rounded-3 fw-bold"
+                        onClick={crearPedidoManual}
+                        disabled={nuevoPedidoItems.length === 0 || !nombreCliente || procesando}
                       >
-                        Confirmar Pedido
+                        {procesando ? 'Creando pedido...' : 'Confirmar Pedido'}
                       </button>
                     </div>
                   </div>

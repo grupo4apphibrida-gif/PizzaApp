@@ -1,0 +1,36 @@
+directories:
+  output: release
+  buildResources: build
+appId: com.pizzaapp.app
+productName: PizzApp
+files:
+  - filter:
+      - dist/**/*
+      - main.js
+      - preload.js
+      - node_modules/**/*
+win:
+  target:
+    - nsis
+    - portable
+  icon: public/icon.ico
+  artifactName: ${productName}_Setup_${version}.${ext}
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: PizzApp
+mac:
+  target:
+    - dmg
+    - zip
+  icon: public/icon.icns
+  category: public.app-category.business
+linux:
+  target:
+    - AppImage
+    - deb
+  icon: public/icon.png
+  category: Office
+electronVersion: 42.4.0
