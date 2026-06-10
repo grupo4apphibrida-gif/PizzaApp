@@ -6,7 +6,7 @@ import Encabezado from './components/navegacion/Encabezado';
 import EmployeeDashboard from './views/employee/EmployeeDashboard';
 import ProtectedRoute from './components/rutas/ProtectedRoute';
 
-// IMPORTACIONES CORRECTAS según tu estructura
+// IMPORTACIONES
 import CatalogoCliente from './views/client/menu/CatalogoCliente';
 import CarritoView from './views/client/CarritoView';
 import MisPedidosView from './views/client/pedidos/MisPedidosView';
@@ -17,9 +17,11 @@ import UsuariosView from './views/admin/usuarios/UsuariosView';
 import IngredientsView from './views/admin/ingredientes/IngredientesView';
 import PromocionesView from './views/admin/promociones/PromocionesView';
 import PedidosAdminView from './views/admin/pedidos/PedidosAdminView';
+import AdminDashboard from './views/admin/AdminDashboard';
 import ReportesAdminView from './views/admin/reportes/ReportesAdminView';
 import EmpleadosView from './views/admin/empleados/EmpleadosView';
 import PermisosView from './views/admin/permisos/PermisosView';
+import ClientesView from './views/ClientesView'; // 👈 IMPORTAR CLIENTES
 
 import './App.css';
 
@@ -42,13 +44,15 @@ const AppContent = () => {
         <Route path="/cliente/mis-pedidos" element={<MisPedidosView />} />
 
         {/* ========== RUTAS DE ADMIN ========== */}
-        <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><Navigate to="/admin/reportes" replace /></ProtectedRoute>} />
+        <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><Navigate to="/admin/dashboard" replace /></ProtectedRoute>} />
+        <Route path="/admin/dashboard" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_inicio"><AdminDashboard /></ProtectedRoute>} />
         <Route path="/admin/reportes" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_inicio"><ReportesAdminView /></ProtectedRoute>} />
         <Route path="/admin/productos" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_productos"><ProductosView /></ProtectedRoute>} />
         <Route path="/admin/usuarios" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_usuarios"><UsuariosView /></ProtectedRoute>} />
         <Route path="/admin/ingredientes" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_ingredientes"><IngredientsView /></ProtectedRoute>} />
         <Route path="/admin/promociones" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_promociones"><PromocionesView /></ProtectedRoute>} />
         <Route path="/admin/pedidos" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_pedidos"><PedidosAdminView /></ProtectedRoute>} />
+        <Route path="/admin/clientes" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_clientes"><ClientesView /></ProtectedRoute>} /> {/* 👈 RUTA DE CLIENTES */}
         <Route path="/admin/empleados" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_empleados"><EmpleadosView /></ProtectedRoute>} />
         <Route path="/admin/permisos" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_permisos"><PermisosView /></ProtectedRoute>} />
 

@@ -1,112 +1,91 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { Card, Row, Col, Badge, Button, Spinner } from "react-bootstrap";
+import React, { useState } from "react";
+import { Card, Badge, Button } from "react-bootstrap";
+import { motion } from "framer-motion";
+import { Edit, Trash2, Package, AlertTriangle, CheckCircle, Calendar } from "lucide-react";
 
 const TarjetasIngredientes = ({
   ingredientes = [],
   abrirModalEdicion,
   abrirModalEliminacion,
 }) => {
-  const [cargando, setCargando] = useState(true);
-  const [idTarjetaActiva, setIdTarjetaActiva] = useState(null);
-
-  useEffect(() => {
-    setCargando(!(ingredientes && ingredientes.length > 0));
-  }, [ingredientes]);
-
-  const manejarTeclaEscape = useCallback((evento) => {
-    if (evento.key === "Escape") setIdTarjetaActiva(null);
-  }, []);
-
-  useEffect(() => {
-    window.addEventListener("keydown", manejarTeclaEscape);
-    return () => window.removeEventListener("keydown", manejarTeclaEscape);
-  }, [manejarTeclaEscape]);
-
   const getStockBadge = (stock, stockMinimo) => {
-    if (stock <= 0) return <Badge bg="danger">Sin stock</Badge>;
-    if (stock <= stockMinimo) return <Badge bg="warning">Stock bajo</Badge>;
-    return <Badge bg="success">Disponible</Badge>;
+    if (stock <= 0) return <Badge bg="danger" className="rounded-pill px-3 py-2"><AlertTriangle size={12} className="me-1" /> Sin stock</Badge>;
+    if (stock <= stockMinimo) return <Badge bg="warning" className="rounded-pill px-3 py-2 text-dark"><AlertTriangle size={12} className="me-1" /> Stock bajo</Badge>;
+    return <Badge bg="success" className="rounded-pill px-3 py-2"><CheckCircle size={12} className="me-1" /> Disponible</Badge>;
   };
 
-  const alternarTarjetaActiva = (id) => {
-    setIdTarjetaActiva((prev) => (prev === id ? null : id));
-  };
-
-  if (cargando) {
+  if (!ingredientes || ingredientes.length === 0) {
     return (
-      <div className="text-center py-4">
-        <Spinner animation="border" variant="primary" />
+      <div className="text-center py-5">
+        <Package size={48} className="text-muted mb-3" />
+        <p className="text-muted">No hay ingredientes registrados</p>
       </div>
     );
   }
 
   return (
-    <div>
-      {ingredientes.map((ing) => {
-        const activa = idTarjetaActiva === ing.id;
-
-        return (
-          <Card
-            key={ing.id}
-            className="mb-2 border shadow-sm position-relative"
-            onClick={() => alternarTarjetaActiva(ing.id)}
-            style={{ cursor: "pointer" }}
+    <div className="row g-3">
+      {ingredientes.map((ing, idx) => (
+        <div key={ing.id} className="col-12">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: idx * 0.05 }}
           >
-            <Card.Body className="p-3">
-              <Row className="align-items-center">
-                <Col xs={7}>
-                  <div className="fw-semibold">{ing.nombre}</div>
-                  <small className="text-muted">Unidad: {ing.unidad}</small>
-                  <div className="mt-1">{getStockBadge(ing.stock || 0, ing.stock_minimo || 0)}</div>
-                </Col>
-                <Col xs={5} className="text-end">
-                  <div className="fw-bold fs-5">{Number(ing.stock || 0).toFixed(2)}</div>
-                  <small className="text-muted">Stock actual</small>
-                  {ing.fecha_vencimiento && (
-                    <div className="text-muted small mt-1">
-                      Vence: {new Date(ing.fecha_vencimiento).toLocaleDateString()}
-                    </div>
-                  )}
-                </Col>
-              </Row>
-            </Card.Body>
-
-            {activa && (
-              <div
-                className="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
-                style={{
-                  background: "rgba(0,0,0,0.7)",
-                  borderRadius: "8px",
-                }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div className="d-flex gap-2">
-                  <Button
-                    size="sm"
-                    variant="warning"
-                    onClick={() => {
-                      abrirModalEdicion(ing);
-                      setIdTarjetaActiva(null);
-                    }}
-                  >
-                    <i className="bi bi-pencil"></i>
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="danger"
-                    onClick={() => {
-                      abrirModalEliminacion(ing);
-                      setIdTarjetaActiva(null);
-                    }}
-                  >
-                    <i className="bi bi-trash"></i>
-                  </Button>
+            <Card className="border-0 shadow-sm" style={{ borderRadius: '20px' }}>
+              <Card.Body className="p-3">
+                <div className="d-flex justify-content-between align-items-start mb-2">
+                  <div>
+                    <h6 className="fw-bold mb-1">{ing.nombre}</h6>
+                    <Badge bg="light" text="dark" className="rounded-pill px-3 py-1 small">{ing.unidad}</Badge>
+                  </div>
+                  <div className="d-flex gap-2">
+                    <button
+                      className="btn btn-outline-warning rounded-circle p-2"
+                      style={{ width: 34, height: 34 }}
+                      onClick={() => abrirModalEdicion(ing)}
+                    >
+                      <Edit size={14} />
+                    </button>
+                    <button
+                      className="btn btn-outline-danger rounded-circle p-2"
+                      style={{ width: 34, height: 34 }}
+                      onClick={() => abrirModalEliminacion(ing)}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
-          </Card>
-        );
-      })}
+
+                <div className="row g-2 mt-2">
+                  <div className="col-6">
+                    <div className="bg-light rounded-3 p-2 text-center">
+                      <small className="text-muted d-block">Stock actual</small>
+                      <span className="fw-bold fs-5">{Number(ing.stock || 0).toFixed(2)}</span>
+                    </div>
+                  </div>
+                  <div className="col-6">
+                    <div className="bg-light rounded-3 p-2 text-center">
+                      <small className="text-muted d-block">Stock mínimo</small>
+                      <span className="fw-bold">{Number(ing.stock_minimo || 0).toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-3 d-flex justify-content-between align-items-center">
+                  {getStockBadge(ing.stock || 0, ing.stock_minimo || 0)}
+                  {ing.fecha_vencimiento && (
+                    <small className="text-muted d-flex align-items-center gap-1">
+                      <Calendar size={12} />
+                      Vence: {new Date(ing.fecha_vencimiento).toLocaleDateString()}
+                    </small>
+                  )}
+                </div>
+              </Card.Body>
+            </Card>
+          </motion.div>
+        </div>
+      ))}
     </div>
   );
 };

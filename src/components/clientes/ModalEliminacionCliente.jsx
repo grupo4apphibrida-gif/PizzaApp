@@ -3,22 +3,22 @@ import { Modal, Button } from "react-bootstrap";
 import { motion } from "framer-motion";
 import { AlertTriangle, Trash2, X } from "lucide-react";
 
-const ModalEliminacionIngrediente = ({
+const ModalEliminacionCliente = ({
   mostrarModalEliminacion,
   setMostrarModalEliminacion,
-  eliminarIngrediente,
-  ingrediente,
+  eliminarCliente,
+  cliente,
 }) => {
   const [deshabilitado, setDeshabilitado] = useState(false);
 
   const handleEliminar = async () => {
     if (deshabilitado) return;
     setDeshabilitado(true);
-    await eliminarIngrediente();
+    await eliminarCliente();
     setDeshabilitado(false);
   };
 
-  if (!ingrediente) return null;
+  if (!cliente) return null;
 
   return (
     <Modal
@@ -26,7 +26,7 @@ const ModalEliminacionIngrediente = ({
       onHide={() => setMostrarModalEliminacion(false)}
       backdrop="static"
       centered
-      className="eliminacion-modal"
+      className="cliente-modal"
     >
       <Modal.Header className="border-0 p-4" style={{ background: 'linear-gradient(135deg, #dc3545, #c82333)' }}>
         <div className="d-flex align-items-center gap-3">
@@ -52,11 +52,14 @@ const ModalEliminacionIngrediente = ({
           </div>
           <h5 className="fw-bold mb-3">¿Estás seguro?</h5>
           <p className="text-muted mb-2">
-            ¿Estás seguro de que deseas eliminar el ingrediente{" "}
-            <strong className="text-danger">{ingrediente.nombre}</strong>?
+            ¿Estás seguro de que deseas eliminar al cliente{" "}
+            <strong className="text-danger">
+              {cliente.nombre_cliente} {cliente.apellido_cliente}
+            </strong>
+            ?
           </p>
           <div className="alert alert-danger small mt-3">
-            ⚠️ Esta acción eliminará también la relación con productos que usen este ingrediente.
+            ⚠️ Esta acción eliminará permanentemente al cliente del sistema.
           </div>
         </div>
       </Modal.Body>
@@ -73,12 +76,12 @@ const ModalEliminacionIngrediente = ({
           className="btn btn-danger rounded-pill px-4 fw-bold"
         >
           <Trash2 size={16} className="me-2" />
-          Eliminar
+          Eliminar Cliente
         </motion.button>
       </Modal.Footer>
 
       <style>{`
-        .eliminacion-modal .modal-content {
+        .cliente-modal .modal-content {
           border-radius: 28px;
           overflow: hidden;
           border: none;
@@ -100,4 +103,4 @@ const ModalEliminacionIngrediente = ({
   );
 };
 
-export default ModalEliminacionIngrediente;
+export default ModalEliminacionCliente;

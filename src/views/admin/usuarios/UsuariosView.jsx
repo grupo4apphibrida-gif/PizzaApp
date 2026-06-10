@@ -1,22 +1,36 @@
 import React, { useEffect, useState } from 'react';
 import { Users, Plus } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { getUsers, createUser } from '../../../services/api';
+import { getUsers, createUser, updateUser, deleteUser } from '../../../services/api';
 import ModalRegistroUsuario from '../../../components/usuarios/ModalRegistroUsuario';
+import ModalEdicionUsuario from '../../../components/usuarios/ModalEdicionUsuario';
+import ModalEliminacionUsuario from '../../../components/usuarios/ModalEliminacionUsuario';
+import TablaUsuarios from '../../../components/usuarios/TablaUsuarios';
 import NotificacionOperacion from '../../../components/NotificacionOperacion';
+import CuadroBusquedas from '../../../components/busquedas/CuadroBusquedas';
 import Paginacion from '../../../components/Paginacion';
 
 const UsuariosView = () => {
   const [users, setUsers] = useState([]);
+  const [usuariosFiltrados, setUsuariosFiltrados] = useState([]);
+  const [textoBusqueda, setTextoBusqueda] = useState('');
   const [loading, setLoading] = useState(true);
   const [mostrarModal, setMostrarModal] = useState(false);
+  const [mostrarModalEdicion, setMostrarModalEdicion] = useState(false);
+  const [mostrarModalEliminacion, setMostrarModalEliminacion] = useState(false);
   const [nuevoUsuario, setNuevoUsuario] = useState({
     nombre: '',
     correo: '',
     password: '',
-    rol: 'empleado',
+    rol: 'cliente',
     activo: true,
   });
+  const [usuarioEditar, setUsuarioEditar] = useState({
+    nombre: '',
+    rol: 'cliente',
+    activo: true,
+  });
+  const [usuarioEliminar, setUsuarioEliminar] = useState(null);
   const [paginaActual, setPaginaActual] = useState(1);
   const [registrosPorPagina, setRegistrosPorPagina] = useState(10);
   const [toast, setToast] = useState({ mostrar: false, mensaje: '', tipo: '' });
@@ -24,6 +38,21 @@ const UsuariosView = () => {
   useEffect(() => {
     cargarUsuarios();
   }, []);
+
+  useEffect(() => {
+    if (!textoBusqueda.trim()) {
+      setUsuariosFiltrados(users);
+    } else {
+      const texto = textoBusqueda.toLowerCase();
+      const filtrados = users.filter(u =>
+        u.nombre.toLowerCase().includes(texto) ||
+        u.correo.toLowerCase().includes(texto) ||
+        u.rol.toLowerCase().includes(texto)
+      );
+      setUsuariosFiltrados(filtrados);
+    }
+    setPaginaActual(1);
+  }, [textoBusqueda, users]);
 
   const cargarUsuarios = async () => {
     try {
@@ -46,11 +75,23 @@ const UsuariosView = () => {
     }));
   };
 
+  const manejoCambioInputEdicion = (event) => {
+    const { name, value, type, checked } = event.target;
+    setUsuarioEditar((prev) => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value,
+    }));
+  };
+
   const agregarUsuario = async () => {
+    if (!nuevoUsuario.nombre.trim() || !nuevoUsuario.correo.trim() || !nuevoUsuario.password.trim()) {
+      setToast({ mostrar: true, mensaje: 'Por favor completa todos los campos', tipo: 'error' });
+      return;
+    }
     try {
       await createUser(nuevoUsuario);
       setMostrarModal(false);
-      setNuevoUsuario({ nombre: '', correo: '', password: '', rol: 'empleado', activo: true });
+      setNuevoUsuario({ nombre: '', correo: '', password: '', rol: 'cliente', activo: true });
       await cargarUsuarios();
       setToast({ mostrar: true, mensaje: 'Usuario creado con éxito', tipo: 'exito' });
     } catch (error) {
@@ -59,12 +100,52 @@ const UsuariosView = () => {
     }
   };
 
+  const abrirModalEdicion = (usuario) => {
+    setUsuarioEditar({ ...usuario });
+    setMostrarModalEdicion(true);
+  };
+
+  const actualizarUsuario = async () => {
+    if (!usuarioEditar.nombre.trim()) {
+      setToast({ mostrar: true, mensaje: 'El nombre no puede estar vacío', tipo: 'error' });
+      return;
+    }
+    try {
+      await updateUser(usuarioEditar.id, usuarioEditar);
+      setMostrarModalEdicion(false);
+      await cargarUsuarios();
+      setToast({ mostrar: true, mensaje: 'Usuario actualizado con éxito', tipo: 'exito' });
+    } catch (error) {
+      console.error('Error actualizando usuario:', error);
+      setToast({ mostrar: true, mensaje: 'Error actualizando usuario', tipo: 'error' });
+    }
+  };
+
+  const abrirModalEliminacion = (usuario) => {
+    setUsuarioEliminar(usuario);
+    setMostrarModalEliminacion(true);
+  };
+
+  const eliminarUsuario = async () => {
+    if (!usuarioEliminar) return;
+    try {
+      await deleteUser(usuarioEliminar.id);
+      setMostrarModalEliminacion(false);
+      setUsuarioEliminar(null);
+      await cargarUsuarios();
+      setToast({ mostrar: true, mensaje: 'Usuario eliminado con éxito', tipo: 'exito' });
+    } catch (error) {
+      console.error('Error eliminando usuario:', error);
+      setToast({ mostrar: true, mensaje: 'Error eliminando usuario', tipo: 'error' });
+    }
+  };
+
   const indiceUltimoRegistro = paginaActual * registrosPorPagina;
   const indicePrimerRegistro = indiceUltimoRegistro - registrosPorPagina;
-  const usuariosPaginados = users.slice(indicePrimerRegistro, indiceUltimoRegistro);
+  const usuariosPaginados = usuariosFiltrados.slice(indicePrimerRegistro, indiceUltimoRegistro);
 
   return (
-    <motion.div 
+    <motion.div
       key="usuarios"
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
@@ -74,7 +155,10 @@ const UsuariosView = () => {
       <div className="col-12">
         <div className="bg-white p-4 rounded-4 shadow-sm">
           <div className="d-flex justify-content-between align-items-center mb-4">
-            <h3 className="fw-black mb-0 text-dark fs-4">Gestión de Usuarios</h3>
+            <h3 className="fw-black mb-0 text-dark fs-4">
+              <Users size={24} className="me-2" style={{ display: 'inline' }} />
+              Gestión de Usuarios
+            </h3>
             <button
               className="btn btn-pizza-primary rounded-pill px-4 py-2 fw-bold text-uppercase x-small shadow-sm d-flex align-items-center gap-2"
               onClick={() => setMostrarModal(true)}
@@ -82,44 +166,43 @@ const UsuariosView = () => {
               <Plus size={18} /> Agregar Usuario
             </button>
           </div>
-          <div className="table-responsive">
-            <table className="table table-hover align-middle">
-              <thead className="bg-light text-muted x-small text-uppercase fw-bold tracking-widest border-0">
-                <tr>
-                  <th className="py-3 border-0 px-4">Usuario</th>
-                  <th className="py-3 border-0 px-4">Correo</th>
-                  <th className="py-3 border-0 px-4 text-center">Rol</th>
-                  <th className="py-3 border-0 px-4 text-end">Registro</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  <tr>
-                    <td colSpan="4" className="text-center py-4">
-                      <div className="spinner-border text-pizza-red" role="status"></div>
-                    </td>
-                  </tr>
-                ) : users.length === 0 ? (
-                  <tr>
-                    <td colSpan="4" className="text-center py-4 text-muted">No hay usuarios registrados aún.</td>
-                  </tr>
-                ) : usuariosPaginados.map(user => (
-                  <tr key={user.id}>
-                    <td className="py-4 px-4 fw-bold">{user.nombre}</td>
-                    <td className="py-4 px-4 text-muted">{user.correo}</td>
-                    <td className="py-4 px-4 text-center">
-                      <span className={`badge rounded-pill px-3 py-1 text-uppercase x-small ${user.rol === 'admin' ? 'bg-danger text-white' : user.rol === 'empleado' ? 'bg-primary text-white' : 'bg-light text-dark'}`}>
-                        {user.rol}
-                      </span>
-                    </td>
-                    <td className="py-4 px-4 text-end text-muted small">{user.creado_en ? new Date(user.creado_en).toLocaleDateString() : '---'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+
+          <div className="mb-3">
+            <CuadroBusquedas
+              textoBusqueda={textoBusqueda}
+              manejarCambioBusqueda={(e) => setTextoBusqueda(e.target.value)}
+              placeholder="Buscar por nombre, correo o rol..."
+            />
           </div>
+
+          {loading ? (
+            <div className="text-center py-5">
+              <div className="spinner-border text-pizza-red" role="status"></div>
+              <p className="mt-2 text-muted">Cargando usuarios...</p>
+            </div>
+          ) : usuariosFiltrados.length === 0 ? (
+            <div className="text-center py-5">
+              <p className="text-muted">No hay usuarios que coincidan con tu búsqueda</p>
+            </div>
+          ) : (
+            <>
+              <TablaUsuarios
+                usuarios={usuariosPaginados}
+                abrirModalEdicion={abrirModalEdicion}
+                abrirModalEliminacion={abrirModalEliminacion}
+              />
+              <Paginacion
+                registrosPorPagina={registrosPorPagina}
+                totalRegistros={usuariosFiltrados.length}
+                paginaActual={paginaActual}
+                establecerPaginaActual={setPaginaActual}
+                establecerRegistrosPorPagina={setRegistrosPorPagina}
+              />
+            </>
+          )}
         </div>
       </div>
+
       <ModalRegistroUsuario
         mostrarModal={mostrarModal}
         setMostrarModal={setMostrarModal}
@@ -127,13 +210,22 @@ const UsuariosView = () => {
         manejoCambioInput={manejoCambioInput}
         agregarUsuario={agregarUsuario}
       />
-      <Paginacion
-        registrosPorPagina={registrosPorPagina}
-        totalRegistros={users.length}
-        paginaActual={paginaActual}
-        establecerPaginaActual={setPaginaActual}
-        establecerRegistrosPorPagina={setRegistrosPorPagina}
+
+      <ModalEdicionUsuario
+        mostrarModalEdicion={mostrarModalEdicion}
+        setMostrarModalEdicion={setMostrarModalEdicion}
+        usuarioEditar={usuarioEditar}
+        manejoCambioInputEdicion={manejoCambioInputEdicion}
+        actualizarUsuario={actualizarUsuario}
       />
+
+      <ModalEliminacionUsuario
+        mostrarModalEliminacion={mostrarModalEliminacion}
+        setMostrarModalEliminacion={setMostrarModalEliminacion}
+        eliminarUsuario={eliminarUsuario}
+        usuario={usuarioEliminar}
+      />
+
       <NotificacionOperacion
         mostrar={toast.mostrar}
         mensaje={toast.mensaje}

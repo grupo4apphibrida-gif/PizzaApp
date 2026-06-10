@@ -1,5 +1,7 @@
 import React, { useState } from "react";
-import { Modal, Form, Button, Row, Col } from "react-bootstrap";
+import { Modal, Form, Button, Row, Col, Badge } from "react-bootstrap";
+import { motion } from "framer-motion";
+import { Gift, Percent, Calendar, Image as ImageIcon, X, Save } from "lucide-react";
 
 const ModalEdicionPromocion = ({
   mostrarModalEdicion,
@@ -18,6 +20,8 @@ const ModalEdicionPromocion = ({
     setDeshabilitado(false);
   };
 
+  if (!promocionEditar) return null;
+
   return (
     <Modal
       show={mostrarModalEdicion}
@@ -25,32 +29,49 @@ const ModalEdicionPromocion = ({
       backdrop="static"
       centered
       size="lg"
+      className="promocion-modal"
     >
-      <Modal.Header closeButton>
-        <Modal.Title>
-          <i className="bi bi-pencil-square me-2"></i>
-          Editar Promoción
-        </Modal.Title>
+      <Modal.Header className="border-0" style={{ background: 'linear-gradient(135deg, #dc3545, #c82333)' }}>
+        <div className="d-flex align-items-center gap-3">
+          <div className="bg-white rounded-circle p-2">
+            <Gift size={24} color="#dc3545" />
+          </div>
+          <div>
+            <Modal.Title className="fw-bold text-white">Editar Promoción</Modal.Title>
+            <p className="text-white-50 small mb-0">Modifica los datos de la oferta</p>
+          </div>
+        </div>
+        <button onClick={() => setMostrarModalEdicion(false)} className="btn-close-white">
+          <X size={20} />
+        </button>
       </Modal.Header>
 
-      <Modal.Body>
+      <Modal.Body className="p-4" style={{ background: '#f8f9fa' }}>
         <Form>
           <Row>
             <Col xs={12} md={6}>
               <Form.Group className="mb-3">
-                <Form.Label>Título *</Form.Label>
+                <Form.Label className="fw-bold">
+                  <Gift size={14} className="me-1" />
+                  Título *
+                </Form.Label>
                 <Form.Control
                   type="text"
                   name="titulo"
                   value={promocionEditar.titulo || ""}
                   onChange={manejoCambioInputEdicion}
+                  className="rounded-3"
+                  placeholder="Ej: 2x1 en Pizzas"
                 />
               </Form.Group>
             </Col>
 
             <Col xs={12} md={6}>
               <Form.Group className="mb-3">
-                <Form.Label>Descuento (%) *</Form.Label>
+                <Form.Label className="fw-bold">
+                  <Percent size={14} className="me-1" />
+                  Descuento (%) *
+                </Form.Label>
                 <Form.Control
                   type="number"
                   step="0.01"
@@ -59,104 +80,160 @@ const ModalEdicionPromocion = ({
                   name="descuento"
                   value={promocionEditar.descuento || ""}
                   onChange={manejoCambioInputEdicion}
+                  className="rounded-3"
+                  placeholder="Ej: 20"
                 />
               </Form.Group>
             </Col>
 
             <Col xs={12}>
               <Form.Group className="mb-3">
-                <Form.Label>Descripción</Form.Label>
+                <Form.Label className="fw-bold">Descripción</Form.Label>
                 <Form.Control
                   as="textarea"
                   rows={3}
                   name="descripcion"
                   value={promocionEditar.descripcion || ""}
                   onChange={manejoCambioInputEdicion}
+                  className="rounded-3"
+                  placeholder="Describe tu promoción..."
                 />
               </Form.Group>
             </Col>
 
             <Col xs={12} md={6}>
               <Form.Group className="mb-3">
-                <Form.Label>Fecha de inicio</Form.Label>
+                <Form.Label className="fw-bold d-flex align-items-center gap-2">
+                  <Calendar size={14} />
+                  Fecha de inicio
+                </Form.Label>
                 <Form.Control
                   type="date"
                   name="fecha_inicio"
                   value={promocionEditar.fecha_inicio || ""}
                   onChange={manejoCambioInputEdicion}
+                  className="rounded-3"
+                  style={{ cursor: 'pointer' }}
                 />
               </Form.Group>
             </Col>
 
             <Col xs={12} md={6}>
               <Form.Group className="mb-3">
-                <Form.Label>Fecha de fin</Form.Label>
+                <Form.Label className="fw-bold d-flex align-items-center gap-2">
+                  <Calendar size={14} />
+                  Fecha de fin
+                </Form.Label>
                 <Form.Control
                   type="date"
                   name="fecha_fin"
                   value={promocionEditar.fecha_fin || ""}
                   onChange={manejoCambioInputEdicion}
+                  className="rounded-3"
+                  style={{ cursor: 'pointer' }}
                 />
               </Form.Group>
             </Col>
 
             <Col xs={12} md={6}>
               <Form.Group className="mb-3">
-                <Form.Label>Imagen</Form.Label>
+                <Form.Label className="fw-bold">
+                  <ImageIcon size={14} className="me-1" />
+                  Nueva Imagen
+                </Form.Label>
                 <Form.Control
                   type="file"
                   accept="image/*"
                   onChange={manejoCambioImagen}
+                  className="rounded-3"
                 />
+                <small className="text-muted">Formatos: JPG, PNG, GIF. Máx 2MB</small>
               </Form.Group>
             </Col>
 
-            <Col xs={12} md={6} className="d-flex align-items-center">
-              {promocionEditar.imagen_url ? (
-                <img
-                  src={promocionEditar.imagen_url}
-                  alt="Vista previa"
-                  className="img-fluid rounded-3"
-                  style={{ maxHeight: 140, objectFit: 'cover', width: '100%' }}
-                />
-              ) : (
-                <div className="border rounded-3 bg-light d-flex align-items-center justify-content-center p-3 text-muted small">
-                  Sin imagen seleccionada
-                </div>
-              )}
+            <Col xs={12} md={6}>
+              <div className="border rounded-3 p-2 bg-white" style={{ minHeight: '100px' }}>
+                {promocionEditar.imagen_url ? (
+                  <img
+                    src={promocionEditar.imagen_url}
+                    alt="Vista previa"
+                    className="img-fluid rounded-3"
+                    style={{ maxHeight: 100, objectFit: 'cover', width: '100%' }}
+                  />
+                ) : (
+                  <div className="d-flex align-items-center justify-content-center h-100 text-muted">
+                    <ImageIcon size={24} className="me-2" />
+                    <small>Sin imagen</small>
+                  </div>
+                )}
+              </div>
             </Col>
 
             <Col xs={12}>
               <Form.Group className="mb-3">
-                <Form.Check
-                  type="switch"
-                  label="Activa"
-                  name="activa"
-                  checked={promocionEditar.activa !== false}
-                  onChange={(e) =>
-                    manejoCambioInputEdicion({
-                      target: { name: "activa", value: e.target.checked },
-                    })
-                  }
-                />
+                <div className="bg-white p-3 rounded-3 border">
+                  <Form.Check
+                    type="switch"
+                    label="Activa"
+                    name="activa"
+                    checked={promocionEditar.activa === true}
+                    onChange={(e) =>
+                      manejoCambioInputEdicion({
+                        target: { name: "activa", value: e.target.checked },
+                      })
+                    }
+                    className="fw-bold"
+                  />
+                  <small className="text-muted">Si está activa, aparecerá en el catálogo</small>
+                </div>
               </Form.Group>
             </Col>
           </Row>
         </Form>
       </Modal.Body>
 
-      <Modal.Footer>
-        <Button variant="secondary" onClick={() => setMostrarModalEdicion(false)}>
+      <Modal.Footer className="border-0 p-3" style={{ background: '#f8f9fa' }}>
+        <Button variant="light" onClick={() => setMostrarModalEdicion(false)} className="rounded-pill px-4">
           Cancelar
         </Button>
-        <Button
-          variant="primary"
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
           onClick={handleActualizar}
           disabled={!promocionEditar.titulo?.trim() || !promocionEditar.descuento || deshabilitado}
+          className="btn btn-danger rounded-pill px-4 fw-bold"
         >
+          <Save size={16} className="me-2" />
           Actualizar
-        </Button>
+        </motion.button>
       </Modal.Footer>
+
+      <style>{`
+        .promocion-modal .modal-content {
+          border-radius: 28px;
+          overflow: hidden;
+          border: none;
+          box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        .btn-close-white {
+          background: rgba(255,255,255,0.2);
+          border: none;
+          border-radius: 12px;
+          width: 36px;
+          height: 36px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+        }
+        input[type="date"] {
+          cursor: pointer;
+        }
+        input[type="date"]::-webkit-calendar-picker-indicator {
+          cursor: pointer;
+          filter: invert(0.3);
+        }
+      `}</style>
     </Modal>
   );
 };

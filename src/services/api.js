@@ -86,6 +86,35 @@ export const createUser = async (user) => {
   }
 };
 
+export const updateUser = async (id, user) => {
+  try {
+    const { data, error } = await supabase.from('usuarios').update(user).eq('id', id).select();
+    if (error) {
+      console.error('Error updateUser:', error);
+      throw error;
+    }
+    console.log('Usuario actualizado:', data[0]);
+    return data[0];
+  } catch (err) {
+    console.error('Exception en updateUser:', err);
+    throw err;
+  }
+};
+
+export const deleteUser = async (id) => {
+  try {
+    const { error } = await supabase.from('usuarios').delete().eq('id', id);
+    if (error) {
+      console.error('Error deleteUser:', error);
+      throw error;
+    }
+    console.log('Usuario eliminado:', id);
+  } catch (err) {
+    console.error('Exception en deleteUser:', err);
+    throw err;
+  }
+};
+
 // Pedidos
 export const getOrders = async () => {
   try {

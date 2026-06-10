@@ -2,14 +2,14 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
-const ProtectedRoute = ({ children, requiredRole, requiredPermission }) => {
+const ProtectedRoute = ({ children, requiredRole, requiredPermission, allowAdmin = true }) => {
   const { usuario, cargando, tienePermiso } = useAuth();
 
   if (cargando) {
     return (
       <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '80vh' }}>
         <div className="text-center">
-          <div className="spinner-border text-primary" role="status">
+          <div className="spinner-border text-danger" role="status">
             <span className="visually-hidden">Cargando...</span>
           </div>
           <p className="mt-3 text-muted">Verificando sesión...</p>
@@ -23,7 +23,16 @@ const ProtectedRoute = ({ children, requiredRole, requiredPermission }) => {
     return <Navigate to="/login" replace />;
   }
 
-  // Validar rol con ambas variantes: "admin" y "administrador"
+  // Verificar si es administrador (con ambas variantes)
+  const esAdmin = usuario.rol === 'admin' || usuario.rol === 'administrador';
+
+  // Si es administrador y allowAdmin es true, permitir acceso directo
+  if (esAdmin && allowAdmin) {
+    console.log(`ProtectedRoute: Admin ${usuario.rol} tiene acceso permitido`);
+    return children;
+  }
+
+  // Validar rol específico
   if (requiredRole) {
     const rolesValidos = requiredRole === 'admin' ? ['admin', 'administrador'] : [requiredRole];
     if (!rolesValidos.includes(usuario.rol)) {
@@ -33,13 +42,17 @@ const ProtectedRoute = ({ children, requiredRole, requiredPermission }) => {
     console.log(`ProtectedRoute: Rol ${usuario.rol} validado correctamente`);
   }
 
+  // Validar permiso específico
   if (requiredPermission && !tienePermiso(requiredPermission)) {
-    console.log(`ProtectedRoute: Permiso ${requiredPermission} no encontrado, redirigiendo a /`);
-    return <Navigate to="/" replace />;
+    if (esAdmin) {
+      console.log(`ProtectedRoute: Usuario admin ${usuario.rol}, permitiendo acceso aun sin permiso ${requiredPermission}`);
+    } else {
+      console.log(`ProtectedRoute: Permiso ${requiredPermission} no encontrado, redirigiendo a /`);
+      return <Navigate to="/" replace />;
+    }
   }
 
   return children;
 };
-
 
 export default ProtectedRoute;

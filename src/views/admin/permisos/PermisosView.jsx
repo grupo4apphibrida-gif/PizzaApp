@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Shield } from 'lucide-react';
 import { Container, Row, Col, Spinner, Alert } from 'react-bootstrap';
 import { supabase } from '../../../database/supabaseconfig';
 import NotificacionOperacion from '../../../components/NotificacionOperacion';
@@ -15,8 +16,10 @@ const PermisosView = () => {
   const [cargando, setCargando] = useState(true);
   const [mostrarModalEdicion, setMostrarModalEdicion] = useState(false);
   const [rolEditar, setRolEditar] = useState(null);
-  const [toast, setToast] = useState({ mostrar: false, mensaje: '', tipo: '' });  const [paginaActual, setPaginaActual] = useState(1);
+  const [toast, setToast] = useState({ mostrar: false, mensaje: '', tipo: '' });
+  const [paginaActual, setPaginaActual] = useState(1);
   const [registrosPorPagina, setRegistrosPorPagina] = useState(10);
+
   const cargarRoles = async () => {
     try {
       setCargando(true);
@@ -44,8 +47,8 @@ const PermisosView = () => {
       setRolesFiltrados(roles);
     } else {
       const texto = textoBusqueda.toLowerCase();
-      const filtrados = roles.filter(r => 
-        r.rol.toLowerCase().includes(texto) || 
+      const filtrados = roles.filter(r =>
+        r.rol.toLowerCase().includes(texto) ||
         (r.descripcion || '').toLowerCase().includes(texto)
       );
       setRolesFiltrados(filtrados);
@@ -87,9 +90,13 @@ const PermisosView = () => {
 
   return (
     <Container className="mt-3">
-      <Row className="align-items-center mb-3">
+      <Row className="mb-4">
         <Col>
-          <h3><i className="bi bi-shield-lock-fill me-2"></i>Gestión de Permisos</h3>
+          <div className="d-flex align-items-center gap-2 mb-4">
+            <Shield size={28} className="text-pizza-primary" />
+            <h3 className="fw-black text-dark mb-0">Gestión de Permisos</h3>
+          </div>
+          <p className="text-muted">Gestiona los permisos para cada rol en el sistema</p>
         </Col>
       </Row>
 
@@ -104,13 +111,19 @@ const PermisosView = () => {
       </Row>
 
       {cargando ? (
-        <div className="text-center py-5"><Spinner animation="border" variant="primary" /></div>
+        <div className="text-center py-5">
+          <Spinner animation="border" variant="primary" />
+          <p className="mt-2 text-muted">Cargando permisos...</p>
+        </div>
+      ) : rolesFiltrados.length === 0 ? (
+        <Alert variant="info">
+          {textoBusqueda
+            ? `No se encontraron roles para "${textoBusqueda}"`
+            : 'No hay permisos disponibles'}
+        </Alert>
       ) : (
         <>
-          {textoBusqueda && rolesFiltrados.length === 0 && (
-            <Alert variant="info">No se encontraron roles para "{textoBusqueda}"</Alert>
-          )}
-          <div className="d-none d-lg-block">
+          <div className="d-none d-lg-block bg-white p-4 rounded-4 shadow-sm mb-4">
             <TablaPermisos roles={rolesPaginados} abrirModalEdicion={abrirModalEdicion} />
           </div>
           <div className="d-lg-none">
