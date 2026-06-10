@@ -48,13 +48,13 @@ const AppContent = () => {
         <Route path="/admin/dashboard" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_inicio"><AdminDashboard /></ProtectedRoute>} />
         <Route path="/admin/reportes" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_inicio"><ReportesAdminView /></ProtectedRoute>} />
         <Route path="/admin/productos" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_productos"><ProductosView /></ProtectedRoute>} />
-        <Route path="/admin/usuarios" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_usuarios"><UsuariosView /></ProtectedRoute>} />
         <Route path="/admin/ingredientes" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_ingredientes"><IngredientsView /></ProtectedRoute>} />
         <Route path="/admin/promociones" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_promociones"><PromocionesView /></ProtectedRoute>} />
         <Route path="/admin/pedidos" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_pedidos"><PedidosAdminView /></ProtectedRoute>} />
         <Route path="/admin/clientes" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_clientes"><ClientesView /></ProtectedRoute>} /> {/* 👈 RUTA DE CLIENTES */}
         <Route path="/admin/empleados" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_empleados"><EmpleadosView /></ProtectedRoute>} />
         <Route path="/admin/permisos" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_permisos"><PermisosView /></ProtectedRoute>} />
+        <Route path="/admin/cocina" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_pedidos"><EmployeeDashboard /></ProtectedRoute>} />
 
         {/* ========== RUTAS DE EMPLEADO ========== */}
         <Route path="/employee" element={<ProtectedRoute requiredPermission="ver_pedidos"><EmployeeDashboard /></ProtectedRoute>} />

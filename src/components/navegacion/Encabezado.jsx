@@ -61,7 +61,7 @@ const Encabezado = () => {
     { label: 'Ingredientes', path: '/admin/ingredientes', icon: <Tag size={22} />, permission: 'ver_ingredientes', adminOnly: true, tooltip: 'Administrar ingredientes' },
     { label: 'Promociones', path: '/admin/promociones', icon: <Award size={22} />, permission: 'ver_promociones', adminOnly: true, tooltip: 'Crear y gestionar promociones' },
     { label: 'Pedidos Admin', path: '/admin/pedidos', icon: <CreditCard size={22} />, permission: 'ver_pedidos', adminOnly: true, tooltip: 'Gestionar todos los pedidos' },
-    { label: 'Usuarios', path: '/admin/usuarios', icon: <Users size={22} />, permission: 'ver_usuarios', adminOnly: true, tooltip: 'Administrar usuarios del sistema' },
+    { label: 'Cocina', path: '/admin/cocina', icon: <ChefHat size={22} />, permission: 'ver_pedidos', adminOnly: true, tooltip: 'Vista de cocina para preparar pedidos' },
     { label: 'Clientes', path: '/admin/clientes', icon: <User size={22} />, permission: 'ver_clientes', adminOnly: true, tooltip: 'Gestionar clientes' },
     { label: 'Empleados', path: '/admin/empleados', icon: <User size={22} />, permission: 'ver_empleados', adminOnly: true, tooltip: 'Gestionar personal' },
     { label: 'Permisos', path: '/admin/permisos', icon: <LayoutDashboard size={22} />, permission: 'ver_permisos', adminOnly: true, tooltip: 'Configurar permisos y roles' },
