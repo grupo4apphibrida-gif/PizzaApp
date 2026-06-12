@@ -21,7 +21,8 @@ import AdminDashboard from './views/admin/AdminDashboard';
 import ReportesAdminView from './views/admin/reportes/ReportesAdminView';
 import EmpleadosView from './views/admin/empleados/EmpleadosView';
 import PermisosView from './views/admin/permisos/PermisosView';
-import ClientesView from './views/ClientesView'; // 👈 IMPORTAR CLIENTES
+import ClientesView from './views/ClientesView';
+import AdminCalificaciones from './views/admin/calificaciones/AdminCalificaciones';
 
 import './App.css';
 
@@ -51,9 +52,10 @@ const AppContent = () => {
         <Route path="/admin/ingredientes" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_ingredientes"><IngredientsView /></ProtectedRoute>} />
         <Route path="/admin/promociones" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_promociones"><PromocionesView /></ProtectedRoute>} />
         <Route path="/admin/pedidos" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_pedidos"><PedidosAdminView /></ProtectedRoute>} />
-        <Route path="/admin/clientes" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_clientes"><ClientesView /></ProtectedRoute>} /> {/* 👈 RUTA DE CLIENTES */}
+        <Route path="/admin/clientes" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_clientes"><ClientesView /></ProtectedRoute>} />
         <Route path="/admin/empleados" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_empleados"><EmpleadosView /></ProtectedRoute>} />
         <Route path="/admin/permisos" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_permisos"><PermisosView /></ProtectedRoute>} />
+        <Route path="/admin/calificaciones" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_calificaciones"><AdminCalificaciones /></ProtectedRoute>} />
         <Route path="/admin/cocina" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_pedidos"><EmployeeDashboard /></ProtectedRoute>} />
 
         {/* ========== RUTAS DE EMPLEADO ========== */}

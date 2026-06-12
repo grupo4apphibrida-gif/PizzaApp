@@ -1,17 +1,22 @@
 import React, { useEffect, useState } from "react";
-import { Container, Row, Col, Card, Button, Spinner, Badge, Form, InputGroup } from "react-bootstrap";
+import { Container, Row, Col, Card, Button, Spinner, Badge, Form, InputGroup, Modal } from "react-bootstrap";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "../../../database/supabaseconfig";
 import { useCarrito } from "../../../context/CarritoContext";
+import { useAuth } from "../../../context/AuthContext";
 import ModalTamanoPizza from "../../../components/catalogo/ModalTamanoPizza";
 import ModalPromocion from "../../../components/catalogo/ModalPromocion";
+import StarsRating from "../../../components/calificaciones/StarsRating";
+import CalificacionesProducto from "../../../components/calificaciones/CalificacionesProducto";
+import ModalCalificacion from "../../../components/calificaciones/ModalCalificacion";
 import { 
   Search, Pizza, Flame, ShoppingCart, Gift, Percent, Calendar, 
-  Tag, AlertCircle, Star, TrendingUp, Clock
+  Tag, AlertCircle, Star, MessageCircle, X
 } from "lucide-react";
 
 const CatalogoCliente = () => {
   const { agregarAlCarrito } = useCarrito();
+  const { user, profile } = useAuth();
   const [productos, setProductos] = useState([]);
   const [promociones, setPromociones] = useState([]);
   const [cargando, setCargando] = useState(true);
@@ -20,9 +25,14 @@ const CatalogoCliente = () => {
   const [textoBusqueda, setTextoBusqueda] = useState("");
   const [mostrarModalTamano, setMostrarModalTamano] = useState(false);
   const [mostrarModalPromocion, setMostrarModalPromocion] = useState(false);
+  const [mostrarModalCalificaciones, setMostrarModalCalificaciones] = useState(false);
+  const [mostrarModalCalificar, setMostrarModalCalificar] = useState(false);
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
+  const [productoParaCalificaciones, setProductoParaCalificaciones] = useState(null);
+  const [productoParaCalificar, setProductoParaCalificar] = useState(null);
   const [promocionSeleccionada, setPromocionSeleccionada] = useState(null);
   const [hoveredItem, setHoveredItem] = useState(null);
+  const [calificaciones, setCalificaciones] = useState({});
 
   const normalizarCategoria = (categoria) => categoria?.trim()?.toLowerCase() || "";
 
@@ -45,7 +55,36 @@ const CatalogoCliente = () => {
         .order("nombre");
 
       if (productosError) throw productosError;
+      
       console.log("✅ Productos cargados:", productosData?.length || 0);
+      console.log("📦 IDs de productos (UUIDs):", productosData?.map(p => ({ id: p.id, nombre: p.nombre })));
+      setProductos(productosData || []);
+
+      // Cargar promedios de calificaciones
+      const { data: calificacionesData, error: califError } = await supabase
+        .from("calificaciones")
+        .select("producto_id, puntuacion")
+        .eq("visible", true);
+
+      if (!califError && calificacionesData) {
+        const promedios = {};
+        const conteos = {};
+        calificacionesData.forEach(cal => {
+          const id = String(cal.producto_id);
+          if (!promedios[id]) {
+            promedios[id] = 0;
+            conteos[id] = 0;
+          }
+          promedios[id] += cal.puntuacion;
+          conteos[id]++;
+        });
+        
+        const promediosFinal = {};
+        Object.keys(promedios).forEach(id => {
+          promediosFinal[id] = (promedios[id] / conteos[id]).toFixed(1);
+        });
+        setCalificaciones(promediosFinal);
+      }
 
       // Cargar promociones activas
       const { data: promocionesData, error: promocionesError } = await supabase
@@ -56,10 +95,6 @@ const CatalogoCliente = () => {
 
       if (promocionesError) throw promocionesError;
       
-      console.log("✅ Promociones activas cargadas:", promocionesData?.length || 0);
-      console.log("📋 Detalle:", promocionesData?.map(p => ({ titulo: p.titulo, descuento: p.descuento })));
-
-      setProductos(productosData || []);
       setPromociones(promocionesData || []);
       
     } catch (error) {
@@ -70,12 +105,24 @@ const CatalogoCliente = () => {
     }
   };
 
-  // Verificar si una promoción es de pizza
+  const verCalificaciones = (producto) => {
+    setProductoParaCalificaciones(producto);
+    setMostrarModalCalificaciones(true);
+  };
+
+  const abrirModalCalificar = (producto, e) => {
+    e.stopPropagation();
+    setProductoParaCalificar(producto);
+    setMostrarModalCalificar(true);
+  };
+
+  const actualizarCalificaciones = () => {
+    cargarDatos();
+  };
+
   const esPromocionPizza = (promocion) => {
     const titulo = promocion.titulo?.toLowerCase() || "";
-    return titulo.includes("pizza") || 
-           titulo.includes("2x1") || 
-           titulo.includes("pizzas");
+    return titulo.includes("pizza") || titulo.includes("2x1") || titulo.includes("pizzas");
   };
 
   const categoriasUnicas = Array.from(
@@ -97,7 +144,6 @@ const CatalogoCliente = () => {
     return searchMatch && categoriaMatch;
   });
 
-  // Promociones filtradas por búsqueda
   const promocionesFiltradas = promociones.filter((p) => {
     const titulo = p.titulo?.toLowerCase() || "";
     const descripcion = p.descripcion?.toLowerCase() || "";
@@ -118,8 +164,6 @@ const CatalogoCliente = () => {
 
   const handlePromocionClick = (promocion) => {
     if (esPromocionPizza(promocion)) {
-      // Para promociones de pizza, necesitamos un producto de ejemplo
-      // Buscar un producto relacionado o usar el primero disponible
       const productoRelacionado = productos.find(p => 
         p.nombre?.toLowerCase().includes("pizza")
       ) || productos[0];
@@ -403,19 +447,63 @@ const CatalogoCliente = () => {
                   </div>
 
                   <Card.Body className="p-3">
-                    <Card.Title className="fw-bold mb-2">{producto.nombre}</Card.Title>
-                    <Card.Text className="text-muted small mb-3" style={{ minHeight: '60px' }}>
-                      {producto.descripcion?.substring(0, 70)}...
+                    <div className="d-flex justify-content-between align-items-start mb-2">
+                      <Card.Title className="fw-bold mb-0">{producto.nombre}</Card.Title>
+                      <button 
+                        className="btn btn-link text-warning p-0"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          verCalificaciones(producto);
+                        }}
+                        title="Ver calificaciones"
+                      >
+                        <Star size={18} fill={calificaciones[producto.id] ? "#ffc107" : "none"} />
+                      </button>
+                    </div>
+                    
+                    <div className="d-flex align-items-center gap-2 mb-2">
+                      <StarsRating rating={calificaciones[producto.id] ? Math.round(calificaciones[producto.id]) : 0} readonly={true} size={14} />
+                      {calificaciones[producto.id] && (
+                        <small className="text-muted">{calificaciones[producto.id]} ★</small>
+                      )}
+                      <button 
+                        className="btn btn-link text-muted p-0 small"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          verCalificaciones(producto);
+                        }}
+                      >
+                        <MessageCircle size={12} className="me-1" />Ver reseñas
+                      </button>
+                    </div>
+                    
+                    <Card.Text className="text-muted small mb-3" style={{ minHeight: '40px' }}>
+                      {producto.descripcion?.substring(0, 60)}...
                     </Card.Text>
+                    
                     <div className="d-flex justify-content-between align-items-center">
                       <div className="fw-bold fs-5 text-danger">
                         C$ {producto.precio}
                       </div>
-                      <div
-                        className="bg-danger rounded-circle d-flex align-items-center justify-content-center"
-                        style={{ width: '40px', height: '40px', cursor: 'pointer' }}
-                      >
-                        <ShoppingCart size={20} color="white" />
+                      <div className="d-flex gap-2">
+                        <button
+                          className="bg-warning rounded-circle d-flex align-items-center justify-content-center border-0"
+                          style={{ width: '40px', height: '40px', cursor: 'pointer' }}
+                          onClick={(e) => abrirModalCalificar(producto, e)}
+                          title="Calificar producto"
+                        >
+                          <Star size={20} color="#fff" />
+                        </button>
+                        <div
+                          className="bg-danger rounded-circle d-flex align-items-center justify-content-center"
+                          style={{ width: '40px', height: '40px', cursor: 'pointer' }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleProductoClick(producto);
+                          }}
+                        >
+                          <ShoppingCart size={20} color="white" />
+                        </div>
                       </div>
                     </div>
                   </Card.Body>
@@ -439,7 +527,7 @@ const CatalogoCliente = () => {
         }
       `}</style>
 
-      {/* Modal de Tamaño de Pizza (incluye envío/retiro) */}
+      {/* Modales */}
       {productoSeleccionado && (
         <ModalTamanoPizza
           mostrar={mostrarModalTamano}
@@ -460,7 +548,6 @@ const CatalogoCliente = () => {
         />
       )}
 
-      {/* Modal de Promoción Normal */}
       {promocionSeleccionada && (
         <ModalPromocion
           mostrar={mostrarModalPromocion}
@@ -487,6 +574,61 @@ const CatalogoCliente = () => {
           }}
         />
       )}
+
+      {/* Modal de Ver Calificaciones */}
+      {productoParaCalificaciones && (
+        <Modal show={mostrarModalCalificaciones} onHide={() => setMostrarModalCalificaciones(false)} size="lg" centered className="calificaciones-modal">
+          <Modal.Header className="border-0 p-4" style={{ background: 'linear-gradient(135deg, #dc3545, #c82333)' }}>
+            <div className="d-flex align-items-center gap-3">
+              <div className="bg-white rounded-circle p-2">
+                <Star size={24} color="#dc3545" />
+              </div>
+              <div>
+                <Modal.Title className="fw-bold text-white">
+                  Calificaciones de {productoParaCalificaciones.nombre}
+                </Modal.Title>
+                <p className="text-white-50 small mb-0">Comentarios de nuestros más queridos clientes 😊👍</p>
+              </div>
+            </div>
+            <button onClick={() => setMostrarModalCalificaciones(false)} className="btn-close-white">
+              <X size={20} />
+            </button>
+          </Modal.Header>
+          <Modal.Body className="p-0">
+            <CalificacionesProducto 
+              productoId={productoParaCalificaciones.id}
+              productoNombre={productoParaCalificaciones.nombre}
+            />
+          </Modal.Body>
+        </Modal>
+      )}
+
+      {/* Modal de Calificar Producto */}
+      {productoParaCalificar && (
+        <ModalCalificacion
+          mostrar={mostrarModalCalificar}
+          onHide={() => setMostrarModalCalificar(false)}
+          producto={productoParaCalificar}
+          onCalificado={actualizarCalificaciones}
+        />
+      )}
+
+      <style>{`
+        .calificaciones-modal .modal-content {
+          border-radius: 28px;
+          overflow: hidden;
+          border: none;
+          box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        .btn-close-white {
+          background: rgba(255,255,255,0.2);
+          border: none;
+          border-radius: 12px;
+          width: 36px;
+          height: 36px;
+          color: white;
+        }
+      `}</style>
     </Container>
   );
 };

@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { Container, Row, Col, Card, Badge, Spinner, Button } from "react-bootstrap";
+import { Container, Row, Col, Card, Badge, Spinner, Button, Modal, Form } from "react-bootstrap";
 import { motion } from "framer-motion";
 import { supabase } from "../../../database/supabaseconfig";
 import { useAuth } from "../../../context/AuthContext";
-import { Clock, Package, CheckCircle, Truck, XCircle, Pizza, MapPin, CreditCard } from "lucide-react";
+import { Clock, Package, CheckCircle, Truck, XCircle, Pizza, MapPin, CreditCard, Star, MessageCircle, X } from "lucide-react";
+import StarsRating from "../../../components/calificaciones/StarsRating";
 
 const MisPedidosView = () => {
   const { user, profile } = useAuth();
@@ -11,6 +12,15 @@ const MisPedidosView = () => {
   const [detalles, setDetalles] = useState({});
   const [cargando, setCargando] = useState(true);
   const [expandedPedido, setExpandedPedido] = useState(null);
+  
+  // Estados para calificaciones
+  const [mostrarModalCalificacion, setMostrarModalCalificacion] = useState(false);
+  const [productoParaCalificar, setProductoParaCalificar] = useState(null);
+  const [pedidoParaCalificar, setPedidoParaCalificar] = useState(null);
+  const [puntuacion, setPuntuacion] = useState(0);
+  const [titulo, setTitulo] = useState('');
+  const [comentario, setComentario] = useState('');
+  const [enviando, setEnviando] = useState(false);
 
   useEffect(() => {
     cargarPedidos();
@@ -20,7 +30,6 @@ const MisPedidosView = () => {
     try {
       setCargando(true);
       
-      // Obtener el email del usuario
       const emailCliente = profile?.email || user?.email;
       
       if (!emailCliente) {
@@ -32,22 +41,17 @@ const MisPedidosView = () => {
       
       console.log("📧 Buscando pedidos para email:", emailCliente);
       
-      // Primero, obtener los pedidos sin la relación
       const { data: pedidosData, error: pedidosError } = await supabase
         .from("pedidos")
         .select("*")
         .eq("email_cliente", emailCliente)
         .order("creado_en", { ascending: false });
 
-      if (pedidosError) {
-        console.error("Error cargando pedidos:", pedidosError);
-        throw pedidosError;
-      }
+      if (pedidosError) throw pedidosError;
       
       console.log("✅ Pedidos encontrados:", pedidosData?.length || 0);
       setPedidos(pedidosData || []);
       
-      // Luego, obtener los detalles de cada pedido por separado
       if (pedidosData && pedidosData.length > 0) {
         const detallesMap = {};
         
@@ -69,6 +73,75 @@ const MisPedidosView = () => {
       console.error("Error cargando pedidos:", error);
     } finally {
       setCargando(false);
+    }
+  };
+
+  const verificarCalificacionExistente = async (productoId, pedidoId) => {
+    const { data, error } = await supabase
+      .from("calificaciones")
+      .select("id")
+      .eq("producto_id", productoId)
+      .eq("pedido_id", pedidoId)
+      .single();
+    
+    if (error && error.code !== 'PGRST116') {
+      console.error("Error verificando calificación:", error);
+    }
+    return data !== null;
+  };
+
+  const abrirModalCalificacion = async (producto, pedido) => {
+    // Verificar si ya calificó este producto en este pedido
+    const yaCalificado = await verificarCalificacionExistente(producto.producto_id, pedido.id);
+    
+    if (yaCalificado) {
+      alert("Ya has calificado este producto para este pedido");
+      return;
+    }
+    
+    setProductoParaCalificar({
+      id: producto.producto_id,
+      nombre: `Producto ${producto.producto_id?.substring(0, 8)}`,
+      cantidad: producto.cantidad,
+      precio: producto.precio
+    });
+    setPedidoParaCalificar(pedido);
+    setPuntuacion(0);
+    setTitulo('');
+    setComentario('');
+    setMostrarModalCalificacion(true);
+  };
+
+  const enviarCalificacion = async () => {
+    if (puntuacion === 0) {
+      alert('Por favor selecciona una puntuación');
+      return;
+    }
+
+    setEnviando(true);
+    try {
+      const { error } = await supabase
+        .from("calificaciones")
+        .insert([{
+          usuario_id: user?.id,
+          pedido_id: pedidoParaCalificar.id,
+          producto_id: productoParaCalificar.id,
+          puntuacion: puntuacion,
+          titulo: titulo || null,
+          comentario: comentario || null,
+          visible: true
+        }]);
+
+      if (error) throw error;
+      
+      alert("✅ ¡Gracias por tu calificación!");
+      setMostrarModalCalificacion(false);
+      
+    } catch (error) {
+      console.error("Error:", error);
+      alert("Error al enviar calificación: " + error.message);
+    } finally {
+      setEnviando(false);
     }
   };
 
@@ -144,6 +217,7 @@ const MisPedidosView = () => {
             const estadoConfig = getEstadoConfig(pedido.estado);
             const isExpanded = expandedPedido === pedido.id;
             const pedidoDetalles = detalles[pedido.id] || [];
+            const pedidoEntregado = pedido.estado === 'entregado';
             
             return (
               <div key={pedido.id} className="col-12">
@@ -200,31 +274,43 @@ const MisPedidosView = () => {
                     {isExpanded && (
                       <div className="p-4 bg-white">
                         <Row>
-                          <Col md={7}>
+                          <Col md={8}>
                             <h6 className="fw-bold mb-3">📋 Productos:</h6>
                             {pedidoDetalles.length === 0 ? (
                               <p className="text-muted">No hay detalles disponibles</p>
                             ) : (
                               pedidoDetalles.map((detalle, i) => (
-                                <div key={i} className="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                                <div key={i} className="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
                                   <div>
-                                    <span className="fw-semibold">
-                                      Producto {detalle.producto_id?.substring(0, 8)}
-                                    </span>
-                                    {detalle.tamanio && (
-                                      <Badge bg="light" text="dark" className="ms-2">{detalle.tamanio}</Badge>
-                                    )}
+                                    <div className="d-flex align-items-center gap-2 mb-1">
+                                      <span className="fw-semibold">
+                                        Producto {detalle.producto_id?.substring(0, 8)}
+                                      </span>
+                                      {detalle.tamanio && (
+                                        <Badge bg="light" text="dark" className="rounded-pill">{detalle.tamanio}</Badge>
+                                      )}
+                                    </div>
                                     <div className="text-muted small">Cantidad: {detalle.cantidad}</div>
                                   </div>
-                                  <span className="fw-bold text-danger">
-                                    C$ {(detalle.precio * detalle.cantidad).toFixed(2)}
-                                  </span>
+                                  <div className="text-end">
+                                    <div className="fw-bold text-danger">
+                                      C$ {(detalle.precio * detalle.cantidad).toFixed(2)}
+                                    </div>
+                                    {pedidoEntregado && (
+                                      <button
+                                        className="btn btn-sm btn-outline-warning rounded-pill mt-2"
+                                        onClick={() => abrirModalCalificacion(detalle, pedido)}
+                                      >
+                                        <Star size={14} className="me-1" /> Calificar
+                                      </button>
+                                    )}
+                                  </div>
                                 </div>
                               ))
                             )}
                           </Col>
                           
-                          <Col md={5}>
+                          <Col md={4}>
                             <div className="bg-light p-3 rounded-3">
                               <h6 className="fw-bold mb-2">📦 Información del pedido</h6>
                               <hr className="my-2" />
@@ -272,6 +358,89 @@ const MisPedidosView = () => {
           })}
         </div>
       )}
+
+      {/* Modal de Calificación */}
+      <Modal show={mostrarModalCalificacion} onHide={() => setMostrarModalCalificacion(false)} centered size="md" className="calificacion-modal">
+        <Modal.Header className="border-0 p-4" style={{ background: 'linear-gradient(135deg, #dc3545, #c82333)' }}>
+          <div className="d-flex align-items-center gap-3">
+            <div className="bg-white rounded-circle p-2">
+              <Star size={24} color="#dc3545" />
+            </div>
+            <div>
+              <Modal.Title className="fw-bold text-white">
+                Calificar {productoParaCalificar?.nombre}
+              </Modal.Title>
+              <p className="text-white-50 small mb-0">Comparte tu experiencia</p>
+            </div>
+          </div>
+          <button onClick={() => setMostrarModalCalificacion(false)} className="btn-close-white">
+            <X size={20} />
+          </button>
+        </Modal.Header>
+
+        <Modal.Body className="p-4">
+          <Form>
+            <div className="text-center mb-4">
+              <label className="fw-bold mb-2 d-block">¿Cómo calificas este producto?</label>
+              <StarsRating rating={puntuacion} onRatingChange={setPuntuacion} size={32} />
+            </div>
+
+            <Form.Group className="mb-3">
+              <Form.Label className="fw-bold small">Título de tu reseña (opcional)</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Ej: Excelente pizza..."
+                value={titulo}
+                onChange={(e) => setTitulo(e.target.value)}
+                className="rounded-3"
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label className="fw-bold small">Tu comentario (opcional)</Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={4}
+                placeholder="¿Qué te pareció? Cuéntanos tu experiencia..."
+                value={comentario}
+                onChange={(e) => setComentario(e.target.value)}
+                className="rounded-3"
+              />
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+
+        <Modal.Footer className="border-0 p-4">
+          <Button variant="light" onClick={() => setMostrarModalCalificacion(false)} className="rounded-pill px-4">
+            Cancelar
+          </Button>
+          <Button
+            variant="danger"
+            onClick={enviarCalificacion}
+            disabled={enviando || puntuacion === 0}
+            className="rounded-pill px-4 fw-bold"
+          >
+            {enviando ? "Enviando..." : "Enviar Calificación"}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      <style>{`
+        .calificacion-modal .modal-content {
+          border-radius: 28px;
+          overflow: hidden;
+          border: none;
+          box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        .btn-close-white {
+          background: rgba(255,255,255,0.2);
+          border: none;
+          border-radius: 12px;
+          width: 36px;
+          height: 36px;
+          color: white;
+        }
+      `}</style>
     </motion.div>
   );
 };

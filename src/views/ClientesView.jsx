@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Card, Button, Spinner, Badge, Modal, Form } from "react-bootstrap";
 import { motion } from "framer-motion";
-import { supabase } from "../../../PizzaApp/src/database/supabaseconfig";  // ← CORREGIDO
+import { supabase } from "../database/supabaseconfig";
 import { Users, UserPlus, Search, Mail, Phone, UserCheck, Edit, Trash2, X, Save, AlertTriangle } from "lucide-react";
-import NotificacionOperacion from "../../../PizzaApp/src/components/NotificacionOperacion";  // ← CORREGIDO
-import Paginacion from "../../../PizzaApp/src/components/Paginacion";  // ← CORREGIDO
+import NotificacionOperacion from "../components/NotificacionOperacion";
+import Paginacion from "../components/Paginacion";
 
 const ClientesView = () => {
   const [toast, setToast] = useState({ mostrar: false, mensaje: "", tipo: "" });

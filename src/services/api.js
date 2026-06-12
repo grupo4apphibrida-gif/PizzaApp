@@ -120,7 +120,7 @@ export const getOrders = async () => {
   try {
     const { data, error } = await supabase
       .from('pedidos')
-      .select('*, usuarios(nombre), detalle_pedido(*, productos(nombre))')
+      .select('*')
       .order('creado_en', { ascending: false });
     if (error) {
       console.error('Error getOrders:', error);

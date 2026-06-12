@@ -75,6 +75,28 @@ export const AuthProvider = ({ children }) => {
     } catch (error) { throw error; }
   };
 
+  const signUp = async (email, password, nombre = '', rol = 'cliente') => {
+    try {
+      const { data, error } = await supabase.auth.signUp({ email, password });
+      if (error) throw error;
+
+      // Crear registro de cliente si corresponde (registro adicional en tabla clientes)
+      if (rol === 'cliente') {
+        try {
+          const nombreCliente = nombre || email.split('@')[0];
+          await supabase.from('clientes').insert([{ email, nombre_cliente: nombreCliente, apellido_cliente: '', celular: '', creado_en: new Date().toISOString() }]);
+        } catch (err) {
+          // No detener el flujo si la inserción secundaria falla
+          console.error('Error creando cliente después de signup:', err);
+        }
+      }
+
+      return data;
+    } catch (err) {
+      throw err;
+    }
+  };
+
   const logout = async () => {
     await supabase.auth.signOut();
     localStorage.removeItem("usuario-supabase");
@@ -107,7 +129,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ usuario, user: usuario, profile, permisos, tienePermiso: (p) => !!permisos[p], login, logout, signOut: logout, cargando }}>
+    <AuthContext.Provider value={{ usuario, user: usuario, profile, permisos, tienePermiso: (p) => !!permisos[p], login, logout, signUp, signOut: logout, cargando }}>
       {children}
     </AuthContext.Provider>
   );
