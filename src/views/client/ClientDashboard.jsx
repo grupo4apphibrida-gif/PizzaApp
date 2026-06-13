@@ -4,7 +4,6 @@ import { getProducts } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../database/supabaseconfig';
 import Encabezado from '../../components/navegacion/Encabezado';
-import Chatbot from '../../components/Chatbot';
 import MenuView from './menu/MenuView';
 import PedidosView from './pedidos/PedidosView';
 import { 
@@ -503,8 +502,6 @@ const ClientDashboard = () => {
           </motion.div>
         )}
       </AnimatePresence>
-
-      <Chatbot />
 
       <style>{`
         .client-dashboard { background: linear-gradient(135deg, #f8f9fa 0%, #f1f3f5 100%); min-height: 100vh; }

@@ -74,7 +74,7 @@ const LoginPage = () => {
             >
               <Pizza size={40} color="#dc3545" />
             </motion.div>
-            <h1 className="logo-title">PizzApp</h1>
+            <h1 className="logo-title" style={{ fontFamily: "'Pacifico', cursive" }}>PizzApp</h1>
             <p className="logo-subtitle">Tu pizzería favorita</p>
           </div>
 
@@ -219,7 +219,7 @@ const LoginPage = () => {
           left: 0;
           width: 100%;
           height: 100%;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: linear-gradient(135deg, #96281b 0%, #c0392b 40%, #e74c3c 70%, #ff6b35 100%);
         }
 
         .bg-image {
@@ -231,7 +231,7 @@ const LoginPage = () => {
           background-image: url('https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=2070&auto=format');
           background-size: cover;
           background-position: center;
-          opacity: 0.15;
+          opacity: 0.22;
         }
 
         /* Contenido */

@@ -23,6 +23,7 @@ import EmpleadosView from './views/admin/empleados/EmpleadosView';
 import PermisosView from './views/admin/permisos/PermisosView';
 import ClientesView from './views/ClientesView';
 import AdminCalificaciones from './views/admin/calificaciones/AdminCalificaciones';
+import Chatbot from './components/Chatbot';
 
 import './App.css';
 
@@ -65,6 +66,7 @@ const AppContent = () => {
         {/* Redirección por defecto */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
+      <Chatbot />
     </Router>
   );
 };

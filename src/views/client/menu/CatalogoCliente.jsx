@@ -222,27 +222,36 @@ const CatalogoCliente = () => {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="text-center mb-5 py-5 px-3 rounded-4"
+        className="text-center mb-5 py-5 px-3"
         style={{
-          background: 'linear-gradient(135deg, #dc3545 0%, #ff6b6b 100%)',
-          borderRadius: '32px',
-          boxShadow: '0 20px 40px rgba(220, 53, 69, 0.3)',
+          background: 'linear-gradient(135deg, #96281b 0%, #c0392b 45%, #e74c3c 75%, #ff6b35 100%)',
+          borderRadius: '36px',
+          boxShadow: '0 24px 60px rgba(192, 57, 43, 0.35)',
+          position: 'relative',
+          overflow: 'hidden',
         }}
       >
+        {/* Decorative circles */}
+        <div style={{ position: 'absolute', top: -40, right: -40, width: 200, height: 200, background: 'rgba(255,255,255,0.04)', borderRadius: '50%' }} />
+        <div style={{ position: 'absolute', bottom: -60, left: -30, width: 250, height: 250, background: 'rgba(255,255,255,0.04)', borderRadius: '50%' }} />
+
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ delay: 0.2, type: "spring" }}
           className="bg-white rounded-circle d-inline-flex p-3 mb-4"
+          style={{ boxShadow: '0 8px 24px rgba(0,0,0,0.2)' }}
         >
-          <Pizza size={48} color="#dc3545" />
+          <Pizza size={52} color="#c0392b" />
         </motion.div>
-        <h1 className="display-4 fw-bold text-white">Nuestro Menú</h1>
-        <p className="lead text-white-50 mb-3">Las mejores pizzas de Juigalpa, hechas con amor</p>
-        <div className="d-flex justify-content-center gap-2 flex-wrap">
-          <span className="badge bg-white text-danger px-3 py-2 rounded-pill">🔥 Fresco</span>
-          <span className="badge bg-warning text-dark px-3 py-2 rounded-pill">⭐ Sabor casero</span>
-          <span className="badge bg-success text-white px-3 py-2 rounded-pill">⚡ Rápido</span>
+        <h1 className="display-4 fw-bold text-white" style={{ fontFamily: "'Pacifico', cursive", textShadow: '0 2px 12px rgba(0,0,0,0.2)' }}>
+          Nuestro Menú
+        </h1>
+        <p className="lead mb-4" style={{ color: 'rgba(255,255,255,0.85)' }}>Las mejores pizzas de Juigalpa, hechas con amor 🧡</p>
+        <div className="d-flex justify-content-center gap-3 flex-wrap">
+          <span className="badge bg-white px-4 py-2 rounded-pill fw-bold" style={{ color: '#c0392b', fontSize: '0.82rem' }}>🔥 Horno de leña</span>
+          <span className="badge px-4 py-2 rounded-pill fw-bold" style={{ background: 'rgba(255,255,255,0.2)', color: 'white', fontSize: '0.82rem' }}>⭐ Ingredientes frescos</span>
+          <span className="badge px-4 py-2 rounded-pill fw-bold" style={{ background: 'rgba(255,255,255,0.2)', color: 'white', fontSize: '0.82rem' }}>⚡ Entrega rápida</span>
         </div>
       </motion.div>
 

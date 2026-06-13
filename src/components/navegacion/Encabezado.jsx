@@ -97,7 +97,7 @@ const Encabezado = () => {
         <div className="nav-container">
           <Link className="logo-wrapper" to="/">
             <div className="logo-icon"><Pizza size={28} /></div>
-            <span className="logo-text">PizzApp</span>
+            <span className="logo-text" style={{ fontFamily: "'Pacifico', cursive" }}>PizzApp</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -210,7 +210,7 @@ const Encabezado = () => {
               <div className="drawer-header">
                 <div className="drawer-header-content">
                   <div className="drawer-logo"><Pizza size={28} /></div>
-                  <div><h3>PizzApp</h3><p>Tu pizzería favorita</p></div>
+                  <div><h3 style={{ fontFamily: "'Pacifico', cursive" }}>PizzApp</h3><p>Tu pizzería favorita</p></div>
                 </div>
                 <button className="drawer-close" onClick={() => setMenuAbierto(false)}><X size={22} /></button>
               </div>
