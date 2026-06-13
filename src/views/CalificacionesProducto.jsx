@@ -11,10 +11,25 @@ const CalificacionesProducto = ({ productoId, productoNombre }) => {
   const [totalCalificaciones, setTotalCalificaciones] = useState(0);
   const [cargando, setCargando] = useState(true);
   const [distribucion, setDistribucion] = useState({ 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 });
+  const [clientes, setClientes] = useState([]);
 
   useEffect(() => {
     cargarCalificaciones();
   }, [productoId]);
+
+  useEffect(() => {
+    const fetchClientes = async () => {
+      try {
+        const { data } = await supabase
+          .from('clientes')
+          .select('id_cliente, nombre_cliente, apellido_cliente, email');
+        if (data) setClientes(data);
+      } catch (err) {
+        console.error("Error fetching clientes:", err);
+      }
+    };
+    fetchClientes();
+  }, []);
 
   const cargarCalificaciones = async () => {
     try {
@@ -23,10 +38,7 @@ const CalificacionesProducto = ({ productoId, productoNombre }) => {
       // Obtener calificaciones del producto
       const { data, error } = await supabase
         .from("calificaciones")
-        .select(`
-          *,
-          usuarios:usuario_id (email)
-        `)
+        .select("*")
         .eq("producto_id", productoId)
         .eq("visible", true)
         .order("fecha_creacion", { ascending: false });
@@ -54,6 +66,18 @@ const CalificacionesProducto = ({ productoId, productoNombre }) => {
     } finally {
       setCargando(false);
     }
+  };
+
+  const getNombreUsuario = (cal) => {
+    if (!cal.usuario_id) return 'Anónimo';
+    if (cal.usuario_id.includes('@')) {
+      return cal.usuario_id.split('@')[0];
+    }
+    const cliente = clientes.find(c => String(c.id_cliente) === String(cal.usuario_id));
+    if (cliente) {
+      return `${cliente.nombre_cliente} ${cliente.apellido_cliente || ''}`.trim();
+    }
+    return `Cliente #${cal.usuario_id}`;
   };
 
   const getPorcentaje = (count) => {
@@ -142,7 +166,7 @@ const CalificacionesProducto = ({ productoId, productoNombre }) => {
                         <User size={20} className="text-muted" />
                       </div>
                       <div>
-                        <strong>{cal.usuarios?.email?.split('@')[0] || 'Usuario'}</strong>
+                        <strong>{getNombreUsuario(cal)}</strong>
                         <div className="d-flex align-items-center gap-2">
                           <StarsRating rating={cal.puntuacion} readonly={true} size={16} />
                           {cal.titulo && <span className="fw-semibold small">"{cal.titulo}"</span>}

@@ -13,11 +13,27 @@ const CalificacionesProducto = ({ productoId, productoNombre }) => {
   const [error, setError] = useState(null);
   const [distribucion, setDistribucion] = useState({ 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 });
 
+  const [clientes, setClientes] = useState([]);
+
   useEffect(() => {
     if (productoId) {
       cargarCalificaciones();
     }
   }, [productoId]);
+
+  useEffect(() => {
+    const fetchClientes = async () => {
+      try {
+        const { data } = await supabase
+          .from('clientes')
+          .select('id_cliente, nombre_cliente, apellido_cliente, email');
+        if (data) setClientes(data);
+      } catch (err) {
+        console.error("Error fetching clientes:", err);
+      }
+    };
+    fetchClientes();
+  }, []);
 
   const cargarCalificaciones = async () => {
     try {
@@ -28,7 +44,7 @@ const CalificacionesProducto = ({ productoId, productoNombre }) => {
       
       const { data, error } = await supabase
         .from("calificaciones")
-        .select(`*, usuarios:usuario_id (nombre, email)`)
+        .select("*")
         .eq("producto_id", String(productoId))
         .eq("visible", true)
         .order("fecha_creacion", { ascending: false });
@@ -76,7 +92,15 @@ const CalificacionesProducto = ({ productoId, productoNombre }) => {
   };
 
   const getNombreUsuario = (cal) => {
-    return cal.usuarios?.nombre || cal.usuarios?.email?.split('@')[0] || cal.usuario_id || 'Usuario';
+    if (!cal.usuario_id) return 'Anónimo';
+    if (cal.usuario_id.includes('@')) {
+      return cal.usuario_id.split('@')[0];
+    }
+    const cliente = clientes.find(c => String(c.id_cliente) === String(cal.usuario_id));
+    if (cliente) {
+      return `${cliente.nombre_cliente} ${cliente.apellido_cliente || ''}`.trim();
+    }
+    return `Cliente #${cal.usuario_id}`;
   };
 
   if (cargando) {
