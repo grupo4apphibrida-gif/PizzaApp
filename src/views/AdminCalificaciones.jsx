@@ -7,7 +7,7 @@ import {
   Edit, Eye, EyeOff, Search, Filter, Plus, User, Calendar,
   Send, MessageSquare, Award
 } from 'lucide-react';
-import StarsRating from '../../../components/calificaciones/StarsRating';
+import StarsRating from '../../../components/Calificaciones/StarsRating';
 
 const AdminCalificaciones = () => {
   const [calificaciones, setCalificaciones] = useState([]);

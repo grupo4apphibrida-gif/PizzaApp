@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "../../../database/supabaseconfig";
 import { useAuth } from "../../../context/AuthContext";
 import { Clock, Package, CheckCircle, Truck, XCircle, Pizza, MapPin, CreditCard, Star, MessageCircle, X, Bell } from "lucide-react";
-import StarsRating from "../../../components/calificaciones/StarsRating";
+import StarsRating from "../../../components/Calificaciones/StarsRating";
 
 const MisPedidosView = () => {
   const { user, profile } = useAuth();
