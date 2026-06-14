@@ -34,7 +34,7 @@ const PedidosAdminView = () => {
       setCargando(true);
       const { data, error } = await supabase
         .from("pedidos")
-        .select("*, usuarios(nombre)")
+        .select("*")
         .order("creado_en", { ascending: false });
 
       if (error) throw error;
@@ -60,8 +60,8 @@ const PedidosAdminView = () => {
       const filtrados = pedidos.filter((ped) => {
         return (
           ped.id?.toLowerCase().includes(textoLower) ||
-          ped.usuarios?.nombre?.toLowerCase().includes(textoLower) ||
           ped.nombre_cliente?.toLowerCase().includes(textoLower) ||
+          ped.email_cliente?.toLowerCase().includes(textoLower) ||
           ped.estado?.toLowerCase().includes(textoLower)
         );
       });

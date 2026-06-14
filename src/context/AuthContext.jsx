@@ -28,13 +28,50 @@ export const AuthProvider = ({ children }) => {
 
   const obtenerOCrearCliente = async (email, nombre = "") => {
     try {
-      const { data: existente } = await supabase.from('clientes').select('*').eq('email', email).single();
-      if (existente) return existente;
+      // Primero intentar obtener cliente existente
+      const { data: existente, error: fetchError } = await supabase
+        .from('clientes')
+        .select('*')
+        .eq('email', email);
       
-      const nuevoCliente = { email, nombre_cliente: nombre || email.split('@')[0], apellido_cliente: "", celular: "", creado_en: new Date().toISOString() };
-      const { data: creado } = await supabase.from('clientes').insert([nuevoCliente]).select().single();
+      if (existente && existente.length > 0) {
+        const cliente = existente[0];
+        // Si no tiene nombre, actualizar
+        if (!cliente.nombre_cliente) {
+          const nuevoNombre = nombre || email.split('@')[0];
+          await supabase
+            .from('clientes')
+            .update({ nombre_cliente: nuevoNombre })
+            .eq('id_cliente', cliente.id_cliente);
+          cliente.nombre_cliente = nuevoNombre;
+        }
+        return cliente;
+      }
+      
+      // Si no existe, crear nuevo cliente
+      const nombreCliente = nombre || email.split('@')[0];
+      const nuevoCliente = { 
+        email, 
+        nombre_cliente: nombreCliente, 
+        apellido_cliente: "", 
+        celular: "", 
+        creado_en: new Date().toISOString() 
+      };
+      const { data: creado, error: insertError } = await supabase
+        .from('clientes')
+        .insert([nuevoCliente])
+        .select()
+        .single();
+      
+      if (insertError) {
+        console.error('Error creando cliente:', insertError);
+        return null;
+      }
       return creado;
-    } catch (err) { console.error(err); return null; }
+    } catch (err) { 
+      console.error('Error en obtenerOCrearCliente:', err); 
+      return null; 
+    }
   };
 
   const login = async (email, password) => {
@@ -45,8 +82,11 @@ export const AuthProvider = ({ children }) => {
         const { data: empleado } = await supabase.from('empleados').select('tipo_empleado, pin, nombre_empleado, apellido_empleado').eq('email', email).single();
         if (empleado && empleado.pin === password) {
           localStorage.setItem('usuario-supabase', email);
+          const nombreEmpleado = empleado.nombre_empleado || email.split("@")[0];
+          const apellidoEmpleado = empleado.apellido_empleado || "";
+          const nombreCompleto = `${nombreEmpleado} ${apellidoEmpleado}`.trim();
           setUsuario({ email, rol: empleado.tipo_empleado });
-          setProfile({ name: `${empleado.nombre_empleado} ${empleado.apellido_empleado}`, email, role: empleado.tipo_empleado });
+          setProfile({ name: nombreCompleto, email, role: empleado.tipo_empleado });
           await cargarPermisos(empleado.tipo_empleado);
           window.dispatchEvent(new Event('storage'));
           return { success: true };
@@ -59,8 +99,12 @@ export const AuthProvider = ({ children }) => {
       
       if (empleado) {
         localStorage.setItem("usuario-supabase", userEmail);
+        // Asegurar que el nombre no sea null o vacío
+        const nombreEmpleado = empleado.nombre_empleado || userEmail.split("@")[0];
+        const apellidoEmpleado = empleado.apellido_empleado || "";
+        const nombreCompleto = `${nombreEmpleado} ${apellidoEmpleado}`.trim();
         setUsuario({ id: authData.user.id, email: userEmail, rol: empleado.tipo_empleado });
-        setProfile({ name: `${empleado.nombre_empleado} ${empleado.apellido_empleado}`, email: userEmail, role: empleado.tipo_empleado });
+        setProfile({ name: nombreCompleto, email: userEmail, role: empleado.tipo_empleado });
         await cargarPermisos(empleado.tipo_empleado);
       } else {
         const cliente = await obtenerOCrearCliente(userEmail);

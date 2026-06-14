@@ -50,17 +50,24 @@ const ModalPromocionPizza = ({ mostrar, onHide, promocion, producto, onAgregar }
     setAnimating(true);
     setTimeout(() => {
       onAgregar({
-        promocionId: promocion.id,
-        promocionTitulo: promocion.titulo,
-        productoId: producto.id,
-        productoNombre: producto.nombre,
+        id: producto.id,
+        nombre: producto.nombre,
+        titulo: producto.nombre,
+        descripcion: `${promocion.titulo} - ${tamanioActual.nombre}`,
         tamanio: tamanioActual.nombre,
         piezas: tamanioActual.piezas,
+        precio: precioConDescuento,
         precioOriginal: precioOriginal,
-        precioFinal: precioConDescuento,
+        precioBase: producto.precio,
         descuento: promocion.descuento,
+        esPromocion: true,
+        esPromocionPizza: true,
         cantidad: cantidad,
-        imagen: producto.imagen_url || promocion.imagen_url,
+        imagen: producto.imagen_url,
+        imagen_url: producto.imagen_url,
+        tipoEntrega: "retiro",
+        promocionId: promocion.id,
+        promocionTitulo: promocion.titulo,
       });
       onHide();
       setAnimating(false);

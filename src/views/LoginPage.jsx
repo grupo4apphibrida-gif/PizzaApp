@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { supabase } from '../database/supabaseconfig';
 import { Pizza, Mail, Lock, Eye, EyeOff, ArrowRight, UserPlus } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -11,6 +12,10 @@ const LoginPage = () => {
   const [cargando, setCargando] = useState(false);
   const [mostrarContrasena, setMostrarContrasena] = useState(false);
   const [recuerdame, setRecuerdame] = useState(false);
+  const [mostrarResetPassword, setMostrarResetPassword] = useState(false);
+  const [emailReset, setEmailReset] = useState('');
+  const [resetCargando, setResetCargando] = useState(false);
+  const [resetMensaje, setResetMensaje] = useState('');
 
   const navigate = useNavigate();
   const { login, usuario: authUsuario } = useAuth();
@@ -45,6 +50,38 @@ const LoginPage = () => {
   const handleKeyPress = (e) => {
     if (e.key === 'Enter') {
       iniciarSesion();
+    }
+  };
+
+  const manejarResetPassword = async () => {
+    if (!emailReset.trim()) {
+      setResetMensaje('❌ Por favor ingresa un correo electrónico');
+      return;
+    }
+
+    setResetCargando(true);
+    setResetMensaje('');
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(emailReset, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (error) {
+        setResetMensaje('❌ Error: ' + error.message);
+      } else {
+        setResetMensaje('✅ Revisa tu correo para instrucciones de reset');
+        setTimeout(() => {
+          setMostrarResetPassword(false);
+          setEmailReset('');
+          setResetMensaje('');
+        }, 3000);
+      }
+    } catch (err) {
+      setResetMensaje('❌ Error: No se pudo enviar el correo');
+      console.error(err);
+    } finally {
+      setResetCargando(false);
     }
   };
 
@@ -152,7 +189,13 @@ const LoginPage = () => {
                 <span className="checkmark"></span>
                 <span className="checkbox-text">Recordarme</span>
               </label>
-              <a href="#" className="forgot-link">¿Olvidaste tu contraseña?</a>
+              <button 
+                type="button"
+                onClick={() => setMostrarResetPassword(true)}
+                className="forgot-link"
+              >
+                ¿Olvidaste tu contraseña?
+              </button>
             </div>
 
             {/* Botón de inicio */}
@@ -186,6 +229,56 @@ const LoginPage = () => {
               </p>
             </div>
           </div>
+
+          {/* Modal Reset Password */}
+          {mostrarResetPassword && (
+            <motion.div 
+              className="reset-password-modal"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+            >
+              <div className="reset-password-content">
+                <h3>Recuperar Contraseña</h3>
+                <p>Ingresa tu correo y te enviaremos instrucciones para reset</p>
+                
+                <input
+                  type="email"
+                  className="form-input reset-input"
+                  placeholder="tu-email@ejemplo.com"
+                  value={emailReset}
+                  onChange={(e) => setEmailReset(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && manejarResetPassword()}
+                />
+
+                {resetMensaje && (
+                  <div className={`reset-mensaje ${resetMensaje.includes('✅') ? 'success' : 'error'}`}>
+                    {resetMensaje}
+                  </div>
+                )}
+
+                <div className="reset-buttons">
+                  <button
+                    onClick={manejarResetPassword}
+                    disabled={resetCargando}
+                    className="reset-send-btn"
+                  >
+                    {resetCargando ? 'Enviando...' : 'Enviar Instrucciones'}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setMostrarResetPassword(false);
+                      setEmailReset('');
+                      setResetMensaje('');
+                    }}
+                    className="reset-cancel-btn"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
         </motion.div>
       </div>
 
@@ -557,6 +650,147 @@ const LoginPage = () => {
           .logo-title {
             font-size: 24px;
           }
+        }
+
+        /* Reset Password Modal */
+        .reset-password-modal {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.5);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 9999;
+          animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+
+        .reset-password-content {
+          background: white;
+          border-radius: 20px;
+          padding: 32px 28px;
+          max-width: 420px;
+          width: 90%;
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .reset-password-content h3 {
+          font-size: 22px;
+          font-weight: 700;
+          color: #212529;
+          margin: 0 0 8px 0;
+        }
+
+        .reset-password-content p {
+          font-size: 14px;
+          color: #6c757d;
+          margin: 0 0 20px 0;
+        }
+
+        .reset-input {
+          width: 100%;
+          padding: 14px 16px;
+          border: 1px solid #e9ecef;
+          border-radius: 16px;
+          font-size: 15px;
+          margin-bottom: 16px;
+          background: white;
+          color: #212529;
+          transition: all 0.2s;
+        }
+
+        .reset-input:focus {
+          outline: none;
+          border-color: #dc3545;
+          box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+        }
+
+        .reset-mensaje {
+          padding: 12px 16px;
+          border-radius: 12px;
+          margin-bottom: 16px;
+          font-size: 14px;
+          text-align: center;
+          animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .reset-mensaje.success {
+          background: #d4edda;
+          color: #155724;
+          border: 1px solid #c3e6cb;
+        }
+
+        .reset-mensaje.error {
+          background: #f8d7da;
+          color: #721c24;
+          border: 1px solid #f5c6cb;
+        }
+
+        .reset-buttons {
+          display: flex;
+          gap: 12px;
+        }
+
+        .reset-send-btn,
+        .reset-cancel-btn {
+          flex: 1;
+          padding: 12px 16px;
+          border: none;
+          border-radius: 12px;
+          font-size: 15px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .reset-send-btn {
+          background: linear-gradient(135deg, #dc3545, #c82333);
+          color: white;
+        }
+
+        .reset-send-btn:hover:not(:disabled) {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 16px rgba(220, 53, 69, 0.3);
+        }
+
+        .reset-send-btn:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+
+        .reset-cancel-btn {
+          background: #e9ecef;
+          color: #495057;
+        }
+
+        .reset-cancel-btn:hover {
+          background: #dee2e6;
+        }
+
+        /* Forgot link button style */
+        .forgot-link {
+          background: none;
+          border: none;
+          padding: 0;
+          cursor: pointer;
         }
       `}</style>
     </div>

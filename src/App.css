@@ -844,3 +844,378 @@ body {
   color: #e0e0e0 !important;
 }
 
+/* ===== PRODUCT CARDS - CONSISTENT SIZING ===== */
+.producto-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.producto-card .card-body {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  justify-content: space-between;
+}
+
+.producto-card .card-text {
+  flex-grow: 1;
+  min-height: 40px;
+}
+
+/* Promocion cards consistency */
+.promocion-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* Ensure card images have consistent height */
+.producto-card [class*="position-relative"],
+.promocion-card [class*="position-relative"] {
+  min-height: 200px;
+  height: 200px;
+}
+
+/* ===== DARK MODE - CARDS ===== */
+[data-bs-theme="dark"] .card {
+  background-color: #1e1e2e !important;
+  border-color: rgba(255,255,255,0.12) !important;
+  color: #e0e0e0 !important;
+}
+
+[data-bs-theme="dark"] .card-body {
+  color: #e0e0e0 !important;
+  background-color: #1e1e2e !important;
+}
+
+[data-bs-theme="dark"] .card-title {
+  color: #ffffff !important;
+  font-weight: 700 !important;
+}
+
+[data-bs-theme="dark"] .card-text {
+  color: #b8b8b8 !important;
+}
+
+[data-bs-theme="dark"] .producto-card,
+[data-bs-theme="dark"] .promocion-card {
+  background-color: #252538 !important;
+  border-color: rgba(192, 57, 43, 0.25) !important;
+}
+
+/* ===== DARK MODE - BUTTONS ===== */
+[data-bs-theme="dark"] .btn-warning {
+  background-color: #ffc107 !important;
+  color: #1a1a2e !important;
+  border-color: #ffc107 !important;
+  font-weight: 600 !important;
+}
+
+[data-bs-theme="dark"] .btn-warning:hover,
+[data-bs-theme="dark"] .btn-warning:active {
+  background-color: #ffb300 !important;
+  border-color: #ffb300 !important;
+}
+
+[data-bs-theme="dark"] .btn-danger {
+  background-color: #e53935 !important;
+  border-color: #e53935 !important;
+  font-weight: 600 !important;
+}
+
+[data-bs-theme="dark"] .btn-danger:hover,
+[data-bs-theme="dark"] .btn-danger:active {
+  background-color: #c62828 !important;
+  border-color: #c62828 !important;
+}
+
+[data-bs-theme="dark"] .btn-outline-danger {
+  color: #ff6b6b !important;
+  border-color: #ff6b6b !important;
+  font-weight: 600 !important;
+}
+
+[data-bs-theme="dark"] .btn-outline-danger:hover {
+  background-color: rgba(255, 107, 107, 0.15) !important;
+  border-color: #ff6b6b !important;
+}
+
+[data-bs-theme="dark"] .btn-link {
+  color: #64b5f6 !important;
+}
+
+[data-bs-theme="dark"] .btn-link:hover {
+  color: #90caf9 !important;
+}
+
+/* ===== DARK MODE - TEXT & BADGES ===== */
+[data-bs-theme="dark"] .text-muted {
+  color: #c0c0c0 !important;
+}
+
+[data-bs-theme="dark"] .text-danger {
+  color: #ff8a80 !important;
+}
+
+[data-bs-theme="dark"] .fw-bold {
+  color: #ffffff !important;
+}
+
+[data-bs-theme="dark"] h1, [data-bs-theme="dark"] h2, [data-bs-theme="dark"] h3, 
+[data-bs-theme="dark"] h4, [data-bs-theme="dark"] h5, [data-bs-theme="dark"] h6 {
+  color: #ffffff !important;
+}
+
+[data-bs-theme="dark"] p, [data-bs-theme="dark"] span, [data-bs-theme="dark"] div {
+  color: #e0e0e0 !important;
+}
+
+[data-bs-theme="dark"] .small {
+  color: #b0b0b0 !important;
+}
+
+/* ===== DARK MODE - LINKS & FOCUS ===== */
+[data-bs-theme="dark"] a {
+  color: #64b5f6 !important;
+}
+
+[data-bs-theme="dark"] a:hover {
+  color: #90caf9 !important;
+}
+
+[data-bs-theme="dark"] :focus-visible {
+  outline-color: #ffc107 !important;
+}
+
+/* ===== DARK MODE - PLACEHOLDERS ===== */
+[data-bs-theme="dark"] ::placeholder {
+  color: #808080 !important;
+}
+
+[data-bs-theme="dark"] input::placeholder,
+[data-bs-theme="dark"] textarea::placeholder {
+  color: #808080 !important;
+}
+
+/* ===== MOBILE RESPONSIVENESS IMPROVEMENTS ===== */
+@media (max-width: 768px) {
+  .container, .container-fluid {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  .navbar-professional {
+    margin: 0 8px 12px 8px;
+    padding: 0.4rem 0.75rem;
+    border-radius: 24px;
+  }
+
+  h1 { font-size: 1.5rem !important; }
+  h2 { font-size: 1.25rem !important; }
+  h3 { font-size: 1.1rem !important; }
+  h4 { font-size: 1rem !important; }
+
+  .btn { 
+    padding: 0.6rem 1.2rem !important; 
+    font-size: 0.95rem !important;
+  }
+
+  .card { 
+    border-radius: 16px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .row {
+    margin-left: -6px !important;
+    margin-right: -6px !important;
+  }
+
+  .col {
+    padding-left: 6px !important;
+    padding-right: 6px !important;
+  }
+
+  .producto-card [class*="position-relative"],
+  .promocion-card [class*="position-relative"] {
+    min-height: 160px;
+    height: 160px;
+  }
+
+  .card-body {
+    padding: 12px !important;
+  }
+
+  .card-title {
+    font-size: 0.95rem !important;
+    margin-bottom: 6px !important;
+  }
+
+  .card-text {
+    font-size: 0.85rem !important;
+    min-height: auto !important;
+  }
+}
+
+@media (max-width: 576px) {
+  .container, .container-fluid {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+
+  .navbar-professional {
+    margin: 0 4px 8px 4px;
+    padding: 0.35rem 0.5rem;
+    border-radius: 20px;
+  }
+
+  h1 { font-size: 1.35rem !important; }
+  h2 { font-size: 1.1rem !important; }
+  h3 { font-size: 1rem !important; }
+  h4, h5, h6 { font-size: 0.95rem !important; }
+
+  .btn { 
+    padding: 0.5rem 1rem !important; 
+    font-size: 0.85rem !important;
+  }
+
+  .card { 
+    border-radius: 12px !important;
+    margin-bottom: 8px !important;
+  }
+
+  .producto-card [class*="position-relative"],
+  .promocion-card [class*="position-relative"] {
+    min-height: 140px;
+    height: 140px;
+  }
+
+  .card-body {
+    padding: 10px !important;
+  }
+
+  .card-title {
+    font-size: 0.85rem !important;
+    margin-bottom: 4px !important;
+  }
+
+  .card-text {
+    font-size: 0.8rem !important;
+  }
+
+  .row {
+    margin-left: -4px !important;
+    margin-right: -4px !important;
+  }
+
+  .col {
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+  }
+
+  [data-bs-theme="dark"] .navbar-professional {
+    background: rgba(26, 26, 46, 0.97);
+  }
+
+  /* Modal adjustments for small screens */
+  .modal-dialog {
+    margin: 0.5rem !important;
+  }
+
+  .modal-content {
+    border-radius: 16px !important;
+  }
+
+  /* Badge sizing for small screens */
+  .badge {
+    font-size: 0.7rem !important;
+    padding: 0.3rem 0.6rem !important;
+  }
+
+  /* Star icons responsive */
+  svg {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+/* ===== CONTAINER FLUID IMPROVEMENTS ===== */
+.container, .container-fluid {
+  transition: all 0.3s ease;
+}
+
+/* ===== CHATBOT - DARK MODE IMPROVEMENTS ===== */
+[data-bs-theme="dark"] .chatbot-window {
+  background-color: #1e1e30 !important;
+  border-color: rgba(192, 57, 43, 0.3) !important;
+}
+
+[data-bs-theme="dark"] .chatbot-window div[style*="background: '#fdf6ef'"] {
+  background-color: #252540 !important;
+}
+
+/* Message containers in dark mode */
+[data-bs-theme="dark"] .chatbot-window div[style*="background: 'white'"] {
+  background-color: #2a2a3e !important;
+  color: #e0e0e0 !important;
+  border-color: rgba(192, 57, 43, 0.15) !important;
+}
+
+/* Bot message text - ensure visibility */
+[data-bs-theme="dark"] .chatbot-window div[style*="color: '#2d1206'"] {
+  color: #e0e0e0 !important;
+}
+
+/* User message text - ensure white */
+[data-bs-theme="dark"] .chatbot-window div[style*="color: 'white'"] {
+  color: #ffffff !important;
+}
+
+/* Input field in dark mode */
+[data-bs-theme="dark"] .chatbot-window input[placeholder] {
+  background-color: #252540 !important;
+  border-color: rgba(192, 57, 43, 0.3) !important;
+  color: #e0e0e0 !important;
+}
+
+[data-bs-theme="dark"] .chatbot-window input[placeholder]::placeholder {
+  color: #808080 !important;
+}
+
+/* Suggestion buttons in dark mode */
+[data-bs-theme="dark"] .chatbot-window button[style*="border: '1px solid"] {
+  background-color: #2a2a3e !important;
+  color: #ff8787 !important;
+  border-color: rgba(192, 57, 43, 0.4) !important;
+}
+
+[data-bs-theme="dark"] .chatbot-window button[style*="border: '1px solid"]:hover {
+  background-color: rgba(192, 57, 43, 0.2) !important;
+}
+
+/* ===== CHATBOT - MOBILE RESPONSIVENESS ===== */
+@media (max-width: 576px) {
+  .chatbot-bubble {
+    bottom: 16px !important;
+    right: 12px !important;
+  }
+
+  .chatbot-window {
+    position: fixed !important;
+    bottom: 70px !important;
+    right: 8px !important;
+    left: 8px !important;
+    max-width: calc(100vw - 16px) !important;
+    width: auto !important;
+    height: 70vh !important;
+    max-height: 70vh !important;
+    border-radius: 20px !important;
+  }
+
+  .chatbot-window div[style*="flex: 1"] {
+    height: auto !important;
+    max-height: calc(70vh - 140px) !important;
+    overflow-y: auto !important;
+  }
+}
+

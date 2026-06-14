@@ -59,7 +59,7 @@ const TablaPedidos = ({
         {pedidos.map((pedido) => (
           <tr key={pedido.id}>
             <td className="text-muted small">{pedido.id.slice(-8)}</td>
-            <td>{pedido.nombre_cliente || pedido.usuarios?.nombre || "Anónimo"}</td>
+            <td>{pedido.nombre_cliente || pedido.email_cliente?.split('@')[0] || "Anónimo"}</td>
             <td className="fw-bold text-success">C$ {Number(pedido.total || 0).toFixed(2)}</td>
             <td>{getPrioridadBadge(pedido.prioridad)}</td>
             <td>{getEstadoBadge(pedido.estado)}</td>

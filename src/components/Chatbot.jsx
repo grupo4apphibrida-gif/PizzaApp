@@ -338,7 +338,7 @@ const Chatbot = () => {
             </div>
 
             {/* Quick suggestions */}
-            {messages.length <= 2 && !isTyping && (
+            {!isTyping && (
               <div style={{
                 padding: '10px 14px',
                 borderTop: '1px solid rgba(192,57,43,0.1)',

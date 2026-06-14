@@ -113,12 +113,21 @@ const CarritoView = () => {
       console.log("🆔 User ID:", userId);
       console.log("📋 Es UUID:", esUUID);
 
+      // Determinar nombre del cliente
+      let nombreCliente = profile?.name || profile?.nombre;
+      if (!nombreCliente || nombreCliente.trim() === "" || nombreCliente.includes("null")) {
+        nombreCliente = (profile?.email || user?.email || "").split("@")[0];
+      }
+      if (!nombreCliente || nombreCliente.trim() === "") {
+        nombreCliente = "Invitado";
+      }
+
       const pedidoData = {
         total: totalConEnvio,
         estado: "pendiente",
         prioridad: "normal",
         tipo: "cliente",
-        nombre_cliente: profile?.name || profile?.nombre || "Invitado",
+        nombre_cliente: nombreCliente,
         email_cliente: profile?.email || user?.email || null,
         telefono_cliente: profile?.telefono || null,
         tipo_entrega: tipoEntrega,
