@@ -1,16 +1,17 @@
 import { createClient } from "@supabase/supabase-js";
-const url = 'https://ahzvhgjxdxiyfzzpspdk.supabase.co';
-const key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFubmEiLCJpYXQiOjE3NzMyNTgwNjksImV4cCI6MjA4ODgzNDA2OX0.-Ck1RLldWdOobfTDdRhJqxlSx6MQ-Rd4UGC5wLTlaaQ';
+const url = 'https://gyunsyqzzvmalokhwbxx.supabase.co';
+const key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5dW5zeXF6enZtYWxva2h3Ynh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwMjUzMzYsImV4cCI6MjA4OTYwMTMzNn0.K4JAjTW-9qxBw0iCBX0KNztxuoAdJHRz07gJ4yzis2c';
 const supabase = createClient(url, key);
 
 (async () => {
-  const tables = ['usuarios','Usuarios','ingredientes','Ingredientes','promociones','Promociones'];
-  for (const t of tables) {
-    try {
-      const { data, error } = await supabase.from(t).select('*').limit(1);
-      console.log(t, { error: error ? error.message : null, data: data ? data.length : 0 });
-    } catch (e) {
-      console.log(t, 'EX:', e.message);
+  try {
+    const { data: dataPerm, error: errPerm } = await supabase.from('permisos').select('*');
+    if (errPerm) {
+      console.log('Error permisos:', errPerm.message);
+    } else {
+      console.log('Permisos data:', JSON.stringify(dataPerm, null, 2));
     }
+  } catch (e) {
+    console.log('EX:', e.message);
   }
 })();

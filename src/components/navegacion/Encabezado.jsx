@@ -4,7 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { 
   Pizza, LayoutDashboard, ChefHat, LogOut, User, ShoppingCart, 
   ClipboardList, Box, Users, Tag, BarChart3, Menu, X,
-  Home, Settings, Award, CreditCard
+  Home, Settings, Award, CreditCard, Star
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -64,6 +64,7 @@ const Encabezado = () => {
     { label: 'Cocina', path: '/admin/cocina', icon: <ChefHat size={22} />, permission: 'ver_pedidos', adminOnly: true, tooltip: 'Vista de cocina para preparar pedidos' },
     { label: 'Clientes', path: '/admin/clientes', icon: <User size={22} />, permission: 'ver_clientes', adminOnly: true, tooltip: 'Gestionar clientes' },
     { label: 'Empleados', path: '/admin/empleados', icon: <User size={22} />, permission: 'ver_empleados', adminOnly: true, tooltip: 'Gestionar personal' },
+    { label: 'Calificaciones', path: '/admin/calificaciones', icon: <Star size={22} />, permission: 'ver_calificaciones', adminOnly: true, tooltip: 'Ver y moderar calificaciones' },
     { label: 'Permisos', path: '/admin/permisos', icon: <LayoutDashboard size={22} />, permission: 'ver_permisos', adminOnly: true, tooltip: 'Configurar permisos y roles' },
     { label: 'Reportes', path: '/admin/reportes', icon: <BarChart3 size={22} />, permission: 'ver_inicio', adminOnly: true, tooltip: 'Ver reportes y estadísticas' },
     

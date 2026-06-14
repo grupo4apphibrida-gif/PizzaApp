@@ -21,10 +21,16 @@ const MisPedidosView = () => {
   const [titulo, setTitulo] = useState('');
   const [comentario, setComentario] = useState('');
   const [enviando, setEnviando] = useState(false);
+  const [productos, setProductos] = useState([]);
 
   useEffect(() => {
     cargarPedidos();
   }, [user, profile]);
+
+  const getNombreProducto = (id) => {
+    const prod = productos.find(p => String(p.id) === String(id));
+    return prod ? prod.nombre : `Producto ${id?.substring(0, 8) || ''}`;
+  };
 
   const cargarPedidos = async () => {
     try {
@@ -37,6 +43,12 @@ const MisPedidosView = () => {
         setPedidos([]);
         setCargando(false);
         return;
+      }
+      
+      // Cargar productos primero para mapear nombres
+      const { data: prodData } = await supabase.from("productos").select("id, nombre");
+      if (prodData) {
+        setProductos(prodData);
       }
       
       console.log("📧 Buscando pedidos para email:", emailCliente);
@@ -101,7 +113,7 @@ const MisPedidosView = () => {
     
     setProductoParaCalificar({
       id: producto.producto_id,
-      nombre: `Producto ${producto.producto_id?.substring(0, 8)}`,
+      nombre: getNombreProducto(producto.producto_id),
       cantidad: producto.cantidad,
       precio: producto.precio
     });
@@ -123,7 +135,7 @@ const MisPedidosView = () => {
       const { error } = await supabase
         .from("calificaciones")
         .insert([{
-          usuario_id: user?.id,
+          usuario_id: user?.id || user?.email || profile?.email || null,
           pedido_id: pedidoParaCalificar.id,
           producto_id: productoParaCalificar.id,
           puntuacion: puntuacion,
