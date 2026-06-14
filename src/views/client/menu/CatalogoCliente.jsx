@@ -7,9 +7,9 @@ import { useAuth } from "../../../context/AuthContext";
 import ModalTamanoPizza from "../../../components/catalogo/ModalTamanoPizza";
 import ModalPromocion from "../../../components/catalogo/ModalPromocion";
 import ModalPromocionPizza from "../../../components/catalogo/ModalPromocionPizza";
-import StarsRating from "../../../components/calificaciones/StarsRating";
-import CalificacionesProducto from "../../../components/calificaciones/CalificacionesProducto";
-import ModalCalificacion from "../../../components/calificaciones/ModalCalificacion";
+import StarsRating from "../../../components/Calificaciones/StarsRating";
+import CalificacionesProducto from "../../../components/Calificaciones/CalificacionesProducto";
+import ModalCalificacion from "../../../components/Calificaciones/ModalCalificacion";
 import { 
   Search, Pizza, Flame, ShoppingCart, Gift, Percent, Calendar, 
   Tag, AlertCircle, Star, MessageCircle, X
