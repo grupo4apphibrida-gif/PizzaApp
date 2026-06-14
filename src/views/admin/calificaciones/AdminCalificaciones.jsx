@@ -3,7 +3,7 @@ import { Container, Row, Col, Card, Table, Badge, Button, Form, Spinner, Alert, 
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../../../database/supabaseconfig';
 import { Star, Eye, EyeOff, MessageSquare, Trash2, ShieldAlert, CheckCircle, Search, Filter, MessageCircle } from 'lucide-react';
-import StarsRating from '../../../components/Calificaciones/StarsRating';
+import StarsRating from '../../../components/calificaciones/StarsRating';
 
 const AdminCalificaciones = () => {
   const [calificaciones, setCalificaciones] = useState([]);

@@ -204,7 +204,7 @@ const ClientDashboard = () => {
       const esUUID = isUUID(userId);
       
       const pedidoData = {
-        nombre_cliente: profile?.nombre || profile?.name || "Invitado",
+        nombre_cliente: profile?.name || profile?.nombre || "Invitado",
         email_cliente: profile?.email || user?.email || null,
         telefono_cliente: profile?.telefono || null,
         total: totalConEnvio,

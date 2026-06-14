@@ -94,7 +94,46 @@ const ModalCalificacion = ({ mostrar, onHide, producto, onCalificado }) => {
     }
   };
 
-  if (!producto) return null;
+  if (!mostrar || !producto) return null;
+
+  // Verificar que el usuario esté autenticado
+  if (!user?.email && !profile?.email) {
+    return (
+      <Modal show={mostrar} onHide={onHide} centered size="md" className="calificacion-modal">
+        <Modal.Header className="border-0 p-4" style={{ background: 'linear-gradient(135deg, #dc3545, #c82333)' }}>
+          <div className="d-flex align-items-center gap-3">
+            <div className="bg-white rounded-circle p-2">
+              <AlertCircle size={24} color="#dc3545" />
+            </div>
+            <div>
+              <Modal.Title className="fw-bold text-white">
+                Iniciar sesión requerido
+              </Modal.Title>
+              <p className="text-white-50 small mb-0">Para dejar reseñas en PizzApp</p>
+            </div>
+          </div>
+          <button onClick={onHide} className="btn-close-white">
+            <X size={20} />
+          </button>
+        </Modal.Header>
+        <Modal.Body className="p-4 text-center">
+          <p className="text-muted mb-4">
+            Debes iniciar sesión para dejar una reseña o calificación en este producto.
+          </p>
+          <Button 
+            variant="danger" 
+            className="rounded-pill px-4"
+            onClick={() => {
+              onHide();
+              window.location.href = '/login';
+            }}
+          >
+            Ir al login
+          </Button>
+        </Modal.Body>
+      </Modal>
+    );
+  }
 
   return (
     <Modal show={mostrar} onHide={onHide} centered size="md" className="calificacion-modal">

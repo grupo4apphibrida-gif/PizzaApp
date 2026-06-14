@@ -1,12 +1,11 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { CarritoProvider } from './context/CarritoContext';
+import { SettingsProvider } from './context/SettingsContext';
 import Encabezado from './components/navegacion/Encabezado';
 import EmployeeDashboard from './views/employee/EmployeeDashboard';
 import ProtectedRoute from './components/rutas/ProtectedRoute';
-
-// IMPORTACIONES
 import CatalogoCliente from './views/client/menu/CatalogoCliente';
 import CarritoView from './views/client/CarritoView';
 import MisPedidosView from './views/client/pedidos/MisPedidosView';
@@ -24,61 +23,55 @@ import PermisosView from './views/admin/permisos/PermisosView';
 import ClientesView from './views/ClientesView';
 import AdminCalificaciones from './views/admin/calificaciones/AdminCalificaciones';
 import Chatbot from './components/Chatbot';
-
+import SettingsView from './views/SettingsView';
 import './App.css';
 
-const HomeView = () => {
-  return <CatalogoCliente />;
-};
-
 const AppContent = () => {
+  const { usuario } = useAuth();
   return (
-    <Router>
-      <Encabezado />
-      <Routes>
-        {/* Rutas públicas */}
-        <Route path="/" element={<HomeView />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/cliente" element={<Navigate to="/cliente/catalogo" replace />} />
-        <Route path="/cliente/catalogo" element={<CatalogoCliente />} />
-        <Route path="/cliente/carrito" element={<CarritoView />} />
-        <Route path="/cliente/mis-pedidos" element={<MisPedidosView />} />
+    <SettingsProvider userId={usuario?.email || usuario?.id || null}>
+      <Router>
+        <Encabezado />
+        <Routes>
+          <Route path="/" element={<CatalogoCliente />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/cliente" element={<Navigate to="/cliente/catalogo" replace />} />
+          <Route path="/cliente/catalogo" element={<CatalogoCliente />} />
+          <Route path="/cliente/carrito" element={<CarritoView />} />
+          <Route path="/cliente/mis-pedidos" element={<MisPedidosView />} />
 
-        {/* ========== RUTAS DE ADMIN ========== */}
-        <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><Navigate to="/admin/dashboard" replace /></ProtectedRoute>} />
-        <Route path="/admin/dashboard" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_inicio"><AdminDashboard /></ProtectedRoute>} />
-        <Route path="/admin/reportes" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_inicio"><ReportesAdminView /></ProtectedRoute>} />
-        <Route path="/admin/productos" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_productos"><ProductosView /></ProtectedRoute>} />
-        <Route path="/admin/ingredientes" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_ingredientes"><IngredientsView /></ProtectedRoute>} />
-        <Route path="/admin/promociones" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_promociones"><PromocionesView /></ProtectedRoute>} />
-        <Route path="/admin/pedidos" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_pedidos"><PedidosAdminView /></ProtectedRoute>} />
-        <Route path="/admin/clientes" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_clientes"><ClientesView /></ProtectedRoute>} />
-        <Route path="/admin/empleados" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_empleados"><EmpleadosView /></ProtectedRoute>} />
-        <Route path="/admin/permisos" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_permisos"><PermisosView /></ProtectedRoute>} />
-        <Route path="/admin/calificaciones" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_calificaciones"><AdminCalificaciones /></ProtectedRoute>} />
-        <Route path="/admin/cocina" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_pedidos"><EmployeeDashboard /></ProtectedRoute>} />
+          <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><Navigate to="/admin/dashboard" replace /></ProtectedRoute>} />
+          <Route path="/admin/dashboard" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_inicio"><AdminDashboard /></ProtectedRoute>} />
+          <Route path="/admin/reportes" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_inicio"><ReportesAdminView /></ProtectedRoute>} />
+          <Route path="/admin/productos" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_productos"><ProductosView /></ProtectedRoute>} />
+          <Route path="/admin/ingredientes" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_ingredientes"><IngredientsView /></ProtectedRoute>} />
+          <Route path="/admin/promociones" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_promociones"><PromocionesView /></ProtectedRoute>} />
+          <Route path="/admin/pedidos" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_pedidos"><PedidosAdminView /></ProtectedRoute>} />
+          <Route path="/admin/clientes" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_clientes"><ClientesView /></ProtectedRoute>} />
+          <Route path="/admin/empleados" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_empleados"><EmpleadosView /></ProtectedRoute>} />
+          <Route path="/admin/permisos" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_permisos"><PermisosView /></ProtectedRoute>} />
+          <Route path="/admin/calificaciones" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_calificaciones"><AdminCalificaciones /></ProtectedRoute>} />
+          <Route path="/admin/cocina" element={<ProtectedRoute requiredRole="admin" requiredPermission="ver_pedidos"><EmployeeDashboard /></ProtectedRoute>} />
 
-        {/* ========== RUTAS DE EMPLEADO ========== */}
-        <Route path="/employee" element={<ProtectedRoute requiredPermission="ver_pedidos"><EmployeeDashboard /></ProtectedRoute>} />
-        <Route path="/employee/pedidos" element={<ProtectedRoute requiredPermission="ver_pedidos"><PedidosAdminView /></ProtectedRoute>} />
+          <Route path="/employee" element={<ProtectedRoute requiredPermission="ver_pedidos"><EmployeeDashboard /></ProtectedRoute>} />
+          <Route path="/employee/pedidos" element={<ProtectedRoute requiredPermission="ver_pedidos"><PedidosAdminView /></ProtectedRoute>} />
 
-        {/* Redirección por defecto */}
-        <Route path="*" element={<Navigate to="/" />} />
-      </Routes>
-      <Chatbot />
-    </Router>
+          <Route path="/settings" element={<SettingsView />} />
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+        <Chatbot />
+      </Router>
+    </SettingsProvider>
   );
 };
 
-const App = () => {
-  return (
-    <AuthProvider>
-      <CarritoProvider>
-        <AppContent />
-      </CarritoProvider>
-    </AuthProvider>
-  );
-};
+const App = () => (
+  <AuthProvider>
+    <CarritoProvider>
+      <AppContent />
+    </CarritoProvider>
+  </AuthProvider>
+);
 
 export default App;

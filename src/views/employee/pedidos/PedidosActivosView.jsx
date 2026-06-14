@@ -42,7 +42,7 @@ const PedidosActivosView = ({ orders, getStatusIcon, getStatusColor, onStatusCha
                       <User size={24} />
                     </div>
                     <div>
-                      <p className="mb-0 fw-bold text-dark">{order.nombre_cliente || order.usuarios?.nombre || 'Cliente Manual'}</p>
+                      <p className="mb-0 fw-bold text-dark">{order.nombre_cliente || 'Cliente'}</p>
                       <small className="text-muted d-flex align-items-center gap-1">
                         <Clock size={12} />
                         {new Date(order.creado_en).toLocaleTimeString()}
@@ -59,19 +59,24 @@ const PedidosActivosView = ({ orders, getStatusIcon, getStatusColor, onStatusCha
                   )}
 
                   {order.detalle_pedido && order.detalle_pedido.length > 0 && (
-                    <div className="mb-4 bg-light rounded-4 p-4">
-                      <h6 className="fw-bold text-muted text-uppercase x-small mb-3 tracking-widest">Items</h6>
-                      {order.detalle_pedido.map((item) => (
-                        <div key={item.id} className="d-flex justify-content-between mb-2">
-                          <span className="text-dark fw-bold">
-                            {item.productos?.nombre || 'Producto'} <span className="text-pizza-red">x{item.cantidad}</span>
-                          </span>
+                    <div className="mb-4 bg-light rounded-4 p-3">
+                      <h6 className="fw-bold text-muted text-uppercase x-small mb-2">🍕 Pedido</h6>
+                      {order.detalle_pedido.map((item, i) => (
+                        <div key={i} className="d-flex justify-content-between mb-1 align-items-center">
+                          <div className="d-flex align-items-center gap-2">
+                            {item.imagen_producto && (
+                              <img src={item.imagen_producto} style={{ width: 28, height: 28, borderRadius: 8, objectFit: 'cover' }} alt="" />
+                            )}
+                            <span className="fw-bold small">{item.nombre_producto}</span>
+                            {item.tamanio && <span className="badge bg-secondary rounded-pill x-small">{item.tamanio}</span>}
+                            <span className="text-danger fw-bold small">x{item.cantidad}</span>
+                          </div>
                           <span className="text-muted small">C${(item.precio * item.cantidad).toFixed(2)}</span>
                         </div>
                       ))}
-                      <div className="d-flex justify-content-between mt-3 pt-3 border-top border-white">
-                        <span className="fw-black text-dark">TOTAL</span>
-                        <span className="fw-black text-pizza-red fs-5">C${order.total}</span>
+                      <div className="d-flex justify-content-between mt-2 pt-2 border-top">
+                        <span className="fw-black x-small">TOTAL</span>
+                        <span className="fw-black text-danger">C${order.total}</span>
                       </div>
                     </div>
                   )}

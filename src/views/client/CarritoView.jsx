@@ -118,7 +118,7 @@ const CarritoView = () => {
         estado: "pendiente",
         prioridad: "normal",
         tipo: "cliente",
-        nombre_cliente: profile?.nombre || profile?.name || "Invitado",
+        nombre_cliente: profile?.name || profile?.nombre || "Invitado",
         email_cliente: profile?.email || user?.email || null,
         telefono_cliente: profile?.telefono || null,
         tipo_entrega: tipoEntrega,

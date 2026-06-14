@@ -53,15 +53,45 @@ const EmployeeDashboard = () => {
     try {
       setCargando(true);
 
-      const { data, error } = await supabase
-        .from("pedidos")
+      const { data: pedidosRaw, error } = await supabase
+        .from('pedidos')
         .select('*')
-        .order("creado_en", { ascending: false });
+        .order('creado_en', { ascending: false });
 
       if (error) throw error;
 
-      console.log("📦 Pedidos cargados para cocina:", data?.length || 0);
-      setPedidos(data || []);
+      const { data: productosData } = await supabase.from('productos').select('id, nombre, imagen_url');
+      const prodMap = {};
+      (productosData || []).forEach(p => { prodMap[p.id] = p; });
+
+      const { data: clientesData } = await supabase.from('clientes').select('email, nombre_cliente');
+      const clienteMap = {};
+      (clientesData || []).forEach(c => { clienteMap[c.email] = c.nombre_cliente; });
+
+      const pedidosIds = (pedidosRaw || []).map(p => p.id);
+      const { data: detallesRaw } = await supabase
+        .from('detalle_pedido')
+        .select('*')
+        .in('pedido_id', pedidosIds);
+
+      const detalleMap = {};
+      (detallesRaw || []).forEach(d => {
+        if (!detalleMap[d.pedido_id]) detalleMap[d.pedido_id] = [];
+        detalleMap[d.pedido_id].push({
+          ...d,
+          nombre_producto: prodMap[d.producto_id]?.nombre || `Producto ${String(d.producto_id).substring(0, 8)}`,
+          imagen_producto: prodMap[d.producto_id]?.imagen_url || null,
+        });
+      });
+
+      const pedidosEnriquecidos = (pedidosRaw || []).map(p => ({
+        ...p,
+        nombre_cliente: p.nombre_cliente || clienteMap[p.email_cliente] || p.email_cliente?.split('@')[0] || 'Cliente',
+        detalle_pedido: detalleMap[p.id] || [],
+      }));
+
+      setProductos(productosData || []);
+      setPedidos(pedidosEnriquecidos);
     } catch (err) {
       console.error('Error cargando pedidos:', err);
     } finally {
@@ -71,17 +101,9 @@ const EmployeeDashboard = () => {
 
   const cargarProductos = async () => {
     try {
-      const { data, error } = await supabase
-        .from("productos")
-        .select("*")
-        .eq("disponible", true)
-        .order("nombre");
-
-      if (error) throw error;
+      const { data } = await supabase.from('productos').select('*').eq('disponible', true).order('nombre');
       setProductos(data || []);
-    } catch (err) {
-      console.error('Error cargando productos:', err);
-    }
+    } catch (err) { console.error(err); }
   };
 
   const actualizarEstadoPedido = async (pedidoId, nuevoEstado) => {

@@ -71,7 +71,7 @@ const TarjetasPedidos = ({
               <Row className="align-items-center">
                 <Col xs={8}>
                   <div className="fw-semibold">
-                    #{pedido.id.slice(-8)} - {pedido.usuarios?.nombre || pedido.nombre_cliente || "Anónimo"}
+                    #{pedido.id.slice(-8)} - {pedido.nombre_cliente || pedido.usuarios?.nombre || "Anónimo"}
                   </div>
                   <div className="mt-1 d-flex gap-2">
                     {getPrioridadBadge(pedido.prioridad)}

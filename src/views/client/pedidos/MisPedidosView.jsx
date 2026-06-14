@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Container, Row, Col, Card, Badge, Spinner, Button, Modal, Form } from "react-bootstrap";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "../../../database/supabaseconfig";
 import { useAuth } from "../../../context/AuthContext";
-import { Clock, Package, CheckCircle, Truck, XCircle, Pizza, MapPin, CreditCard, Star, MessageCircle, X } from "lucide-react";
+import { Clock, Package, CheckCircle, Truck, XCircle, Pizza, MapPin, CreditCard, Star, MessageCircle, X, Bell } from "lucide-react";
 import StarsRating from "../../../components/calificaciones/StarsRating";
 
 const MisPedidosView = () => {
@@ -12,6 +12,7 @@ const MisPedidosView = () => {
   const [detalles, setDetalles] = useState({});
   const [cargando, setCargando] = useState(true);
   const [expandedPedido, setExpandedPedido] = useState(null);
+  const [alertaPedido, setAlertaPedido] = useState(null);
   
   // Estados para calificaciones
   const [mostrarModalCalificacion, setMostrarModalCalificacion] = useState(false);
@@ -25,6 +26,35 @@ const MisPedidosView = () => {
 
   useEffect(() => {
     cargarPedidos();
+  }, [user, profile]);
+
+  useEffect(() => {
+    const emailCliente = profile?.email || user?.email;
+    if (!emailCliente) return;
+
+    const channel = supabase
+      .channel('mis-pedidos-cliente-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'pedidos',
+          filter: `email_cliente=eq.${emailCliente}`
+        },
+        (payload) => {
+          setPedidos(prev => prev.map(p => p.id === payload.new.id ? { ...p, ...payload.new } : p));
+          if (payload.new.estado === 'entregado' && payload.old.estado !== 'entregado') {
+            setAlertaPedido(payload.new);
+            setTimeout(() => setAlertaPedido(null), 8000);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user, profile]);
 
   const getNombreProducto = (id) => {
@@ -295,8 +325,8 @@ const MisPedidosView = () => {
                                 <div key={i} className="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
                                   <div>
                                     <div className="d-flex align-items-center gap-2 mb-1">
-                                      <span className="fw-semibold">
-                                        Producto {detalle.producto_id?.substring(0, 8)}
+                                      <span className="fw-semibold text-capitalize">
+                                        {getNombreProducto(detalle.producto_id)}
                                       </span>
                                       {detalle.tamanio && (
                                         <Badge bg="light" text="dark" className="rounded-pill">{detalle.tamanio}</Badge>
@@ -453,6 +483,45 @@ const MisPedidosView = () => {
           color: white;
         }
       `}</style>
+
+      {/* Burbuja de Alerta cuando se completa el pedido */}
+      <AnimatePresence>
+        {alertaPedido && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.9 }}
+            className="d-flex align-items-center gap-3"
+            style={{
+              position: 'fixed',
+              bottom: 30,
+              right: 30,
+              zIndex: 9999,
+              background: '#28a745',
+              color: 'white',
+              padding: '16px 24px',
+              borderRadius: '20px',
+              boxShadow: '0 8px 32px rgba(40,167,69,0.3)',
+              maxWidth: '360px',
+            }}
+          >
+            <div className="bg-white rounded-circle p-2 text-success d-flex align-items-center justify-content-center">
+              <Bell size={20} />
+            </div>
+            <div className="flex-grow-1">
+              <div className="fw-bold text-white">¡Tu pedido está listo! 🎉</div>
+              <small className="text-white-50">
+                El pedido #{alertaPedido.id?.substring(0, 8)} ha sido marcado como **Entregado**.
+              </small>
+            </div>
+            <button
+              onClick={() => setAlertaPedido(null)}
+              className="btn-close btn-close-white ms-auto"
+              style={{ fontSize: '0.8rem', padding: '0.5rem' }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };

@@ -6,6 +6,7 @@ import { useCarrito } from "../../../context/CarritoContext";
 import { useAuth } from "../../../context/AuthContext";
 import ModalTamanoPizza from "../../../components/catalogo/ModalTamanoPizza";
 import ModalPromocion from "../../../components/catalogo/ModalPromocion";
+import ModalPromocionPizza from "../../../components/catalogo/ModalPromocionPizza";
 import StarsRating from "../../../components/calificaciones/StarsRating";
 import CalificacionesProducto from "../../../components/calificaciones/CalificacionesProducto";
 import ModalCalificacion from "../../../components/calificaciones/ModalCalificacion";
@@ -25,12 +26,15 @@ const CatalogoCliente = () => {
   const [textoBusqueda, setTextoBusqueda] = useState("");
   const [mostrarModalTamano, setMostrarModalTamano] = useState(false);
   const [mostrarModalPromocion, setMostrarModalPromocion] = useState(false);
+  const [mostrarModalPromocionPizza, setMostrarModalPromocionPizza] = useState(false);
   const [mostrarModalCalificaciones, setMostrarModalCalificaciones] = useState(false);
   const [mostrarModalCalificar, setMostrarModalCalificar] = useState(false);
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
   const [productoParaCalificaciones, setProductoParaCalificaciones] = useState(null);
   const [productoParaCalificar, setProductoParaCalificar] = useState(null);
   const [promocionSeleccionada, setPromocionSeleccionada] = useState(null);
+  const [promocionPizzaSeleccionada, setPromocionPizzaSeleccionada] = useState(null);
+  const [productoPizzaSeleccionado, setProductoPizzaSeleccionado] = useState(null);
   const [hoveredItem, setHoveredItem] = useState(null);
   const [calificaciones, setCalificaciones] = useState({});
 
@@ -169,17 +173,9 @@ const CatalogoCliente = () => {
       ) || productos[0];
       
       if (productoRelacionado) {
-        setProductoSeleccionado({
-          id: productoRelacionado.id,
-          nombre: productoRelacionado.nombre,
-          descripcion: productoRelacionado.descripcion,
-          imagen: productoRelacionado.imagen_url,
-          precioBase: parseFloat(productoRelacionado.precio),
-          esPromocion: true,
-          descuento: promocion.descuento,
-          tituloPromocion: promocion.titulo
-        });
-        setMostrarModalTamano(true);
+        setProductoPizzaSeleccionado(productoRelacionado);
+        setPromocionPizzaSeleccionada(promocion);
+        setMostrarModalPromocionPizza(true);
       }
     } else {
       setPromocionSeleccionada(promocion);
@@ -382,9 +378,13 @@ const CatalogoCliente = () => {
                         <Button 
                           variant="danger" 
                           className="rounded-pill w-100 py-2 fw-bold"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handlePromocionClick(promo);
+                          }}
                         >
                           <ShoppingCart size={18} className="me-2" />
-                          {esPromocionPizza(promo) ? "Personalizar oferta" : "Aprovechar oferta"}
+                          {esPromocionPizza(promo) ? "Aplicar oferta" : "Aprovechar oferta"}
                         </Button>
                       </Card.Body>
                     </Card>
@@ -580,6 +580,26 @@ const CatalogoCliente = () => {
             });
             setMostrarModalPromocion(false);
             setPromocionSeleccionada(null);
+          }}
+        />
+      )}
+
+      {/* Modal de Promoción de Pizza */}
+      {promocionPizzaSeleccionada && productoPizzaSeleccionado && (
+        <ModalPromocionPizza
+          mostrar={mostrarModalPromocionPizza}
+          onHide={() => {
+            setMostrarModalPromocionPizza(false);
+            setPromocionPizzaSeleccionada(null);
+            setProductoPizzaSeleccionado(null);
+          }}
+          promocion={promocionPizzaSeleccionada}
+          producto={productoPizzaSeleccionado}
+          onAgregar={(item) => {
+            agregarAlCarrito(item);
+            setMostrarModalPromocionPizza(false);
+            setPromocionPizzaSeleccionada(null);
+            setProductoPizzaSeleccionado(null);
           }}
         />
       )}

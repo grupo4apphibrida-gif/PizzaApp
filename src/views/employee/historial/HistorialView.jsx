@@ -92,13 +92,18 @@ const HistorialView = ({ orders, getStatusColor, actualizarEstado }) => {
                         </div>
                       </td>
                       <td className="py-3 px-4">
-                        {order.detalle_pedido?.slice(0, 2).map((detalle, i) => (
-                          <div key={i} className="small">
-                            🍕 Producto {detalle.producto_id?.slice(-8)} x{detalle.cantidad}
+                        {order.detalle_pedido?.slice(0, 2).map((d, i) => (
+                          <div key={i} className="small d-flex align-items-center gap-1">
+                            🍕 <span className="fw-semibold">{d.nombre_producto || d.nombre || `Prod. ${String(d.producto_id).slice(-6)}`}</span>
+                            {d.tamanio && <span className="badge bg-secondary x-small">{d.tamanio}</span>}
+                            <span className="text-danger">x{d.cantidad}</span>
                           </div>
                         ))}
                         {order.detalle_pedido?.length > 2 && (
                           <small className="text-muted">+{order.detalle_pedido.length - 2} más</small>
+                        )}
+                        {(!order.detalle_pedido || order.detalle_pedido.length === 0) && (
+                          <small className="text-muted">Sin detalles</small>
                         )}
                       </td>
                       <td className="py-3 px-4 text-center">
