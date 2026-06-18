@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form, Alert } from 'react-bootstrap';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, X, CheckCircle, AlertCircle, ThumbsUp } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../database/supabaseconfig';
 import { useAuth } from '../../context/AuthContext';
 import StarsRating from './StarsRating';
 
 const ModalCalificacion = ({ mostrar, onHide, producto, onCalificado }) => {
   const { user, profile } = useAuth();
+  const navigate = useNavigate();
   const [puntuacion, setPuntuacion] = useState(0);
   const [titulo, setTitulo] = useState('');
   const [comentario, setComentario] = useState('');
@@ -120,12 +122,12 @@ const ModalCalificacion = ({ mostrar, onHide, producto, onCalificado }) => {
           <p className="text-muted mb-4">
             Debes iniciar sesión para dejar una reseña o calificación en este producto.
           </p>
-          <Button 
-            variant="danger" 
+          <Button
+            variant="danger"
             className="rounded-pill px-4"
             onClick={() => {
               onHide();
-              window.location.href = '/login';
+              navigate('/login');
             }}
           >
             Ir al login
