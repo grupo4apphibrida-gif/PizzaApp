@@ -8,7 +8,7 @@ import { useAuth } from '../../context/AuthContext';
 import StarsRating from './StarsRating';
 
 const ModalCalificacion = ({ mostrar, onHide, producto, onCalificado }) => {
-  const { user, profile } = useAuth();
+  const { user, profile, cargando } = useAuth();
   const navigate = useNavigate();
   const [puntuacion, setPuntuacion] = useState(0);
   const [titulo, setTitulo] = useState('');
@@ -97,6 +97,17 @@ const ModalCalificacion = ({ mostrar, onHide, producto, onCalificado }) => {
   };
 
   if (!mostrar || !producto) return null;
+
+  if (cargando) {
+    return (
+      <Modal show={mostrar} onHide={onHide} centered size="md" className="calificacion-modal">
+        <Modal.Body className="p-5 text-center">
+          <div className="spinner-border text-danger" role="status" style={{ width: '2.5rem', height: '2.5rem' }} />
+          <p className="text-muted mt-3 mb-0">Verificando sesión...</p>
+        </Modal.Body>
+      </Modal>
+    );
+  }
 
   // Verificar que el usuario esté autenticado
   if (!user?.email && !profile?.email) {
